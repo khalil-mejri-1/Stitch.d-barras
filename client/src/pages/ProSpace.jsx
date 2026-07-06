@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 
 const ProSpace = () => {
   const [formData, setFormData] = useState({
@@ -88,7 +89,7 @@ const ProSpace = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/bookings", {
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingPayload)

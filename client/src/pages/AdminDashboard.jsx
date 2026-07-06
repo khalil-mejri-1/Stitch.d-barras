@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 
 const AdminDashboard = () => {
   const [activeSubTab, setActiveSubTab] = useState('bookings');
@@ -39,8 +40,8 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         const [bookingsRes, usersRes] = await Promise.all([
-          fetch("http://localhost:3000/api/bookings"),
-          fetch("http://localhost:3000/api/users")
+          fetch(`${API_BASE_URL}/api/bookings`),
+          fetch(`${API_BASE_URL}/api/users`)
         ]);
         if (bookingsRes.ok) {
           const bookingsData = await bookingsRes.json();
@@ -62,7 +63,7 @@ const AdminDashboard = () => {
   const handleStatusChange = async (id, newStatus) => {
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
     try {
-      await fetch(`http://localhost:3000/api/bookings/${id}`, {
+      await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
   const handleTeamChange = async (id, newTeam) => {
     setBookings(prev => prev.map(b => b.id === id ? { ...b, team: newTeam } : b));
     try {
-      await fetch(`http://localhost:3000/api/bookings/${id}`, {
+      await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ team: newTeam })
@@ -589,7 +590,7 @@ const AdminDashboard = () => {
   const handleToggleUserRole = async (user) => {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     try {
-      const response = await fetch(`http://localhost:3000/api/users/${user._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${user._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...user, role: newRole })
@@ -605,7 +606,7 @@ const AdminDashboard = () => {
 
   const handleDeleteUser = async (userId, userName) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -1026,7 +1027,7 @@ const AdminDashboard = () => {
                                 message: `Voulez-vous vraiment supprimer le devis de ${book.customer} ?`,
                                 onConfirm: async () => {
                                   try {
-                                    const response = await fetch(`http://localhost:3000/api/bookings/${book.id}`, {
+                                    const response = await fetch(`${API_BASE_URL}/api/bookings/${book.id}`, {
                                       method: 'DELETE'
                                     });
                                     if (response.ok || response.status === 404) {
@@ -1445,7 +1446,7 @@ const AdminDashboard = () => {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                const response = await fetch(`http://localhost:3000/api/bookings/${editingBooking.id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/bookings/${editingBooking.id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(editingBooking)
@@ -1618,7 +1619,7 @@ const AdminDashboard = () => {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                const response = await fetch(`http://localhost:3000/api/users/${editingUser._id}`, {
+                const response = await fetch(`${API_BASE_URL}/api/users/${editingUser._id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(editingUser)
