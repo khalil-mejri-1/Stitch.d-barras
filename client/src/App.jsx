@@ -21,8 +21,14 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import ProSpace from './pages/ProSpace';
 
+import SEOHead from './components/SEOHead';
+
 const Home = () => (
   <>
+    <SEOHead 
+      title="Stitch Débarras - Services de Débarras Écoresponsables en France"
+      description="Solution N°1 pour le débarras gratuit et payant de maison, appartement, cave et entreprise. Tri écologique, réemploi et intervention rapide 7j/7."
+    />
     <div className="reveal-hidden">
       <Hero />
     </div>
