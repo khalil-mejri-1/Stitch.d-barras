@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 
 const Services = () => {
   const services = [
@@ -52,6 +53,28 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-32 pb-20">
+      <SEOHead 
+        title="Nos Services de Débarras Maison, Cave & Bureau | Stitch Débarras"
+        description="Découvrez nos prestations de débarras complet : vide-maison, appartement, débarras de cave, bureaux professionnels et nettoyage spécialisé. Tri et recyclage éco-responsables."
+        keywords="services débarras, vide maison paris, débarras cave, débarras professionnel b2b, nettoyage diogene, recyclage mobilier"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": services.map((s, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+              "@type": "Service",
+              "name": s.title,
+              "description": s.description,
+              "provider": {
+                "@type": "LocalBusiness",
+                "name": "Stitch Débarras"
+              }
+            }
+          }))
+        }}
+      />
       <div className="max-w-[1280px] mx-auto px-gutter space-y-24">
         {/* Header */}
         <div className="text-center space-y-6 max-w-3xl mx-auto">
