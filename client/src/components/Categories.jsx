@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Categories = () => {
+const Categories = ({ data, isAdmin, onEdit }) => {
   const navigate = useNavigate();
-  const servicesList = [
+  const servicesList = data?.items || [
     {
       title: "Débarras de Maisons & Villas",
       description: "Vidage complet ou partiel de maisons de la cave au grenier. Idéal pour les successions, ventes immobilières ou déménagements. Tri rigoureux des dons et recyclage.",
@@ -29,6 +29,18 @@ const Categories = () => {
 
   return (
     <section className="py-32 relative bg-gradient-to-b from-[#F3F6F9] to-white overflow-hidden">
+      {/* Admin Edit Button */}
+      {isAdmin && (
+        <div className="absolute top-4 right-6 z-50">
+          <button
+            onClick={onEdit}
+            className="px-4 py-2 bg-[#00d26a] hover:bg-[#00b95c] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,210,106,0.2)] transition-all flex items-center gap-2 text-sm group"
+          >
+            <span>✏️</span> Modifier Section Domaines
+          </button>
+        </div>
+      )}
+
       {/* Background Blobs */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-[#5d3077]/5 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-[#00d26a]/5 rounded-full blur-3xl -z-10"></div>
@@ -39,10 +51,18 @@ const Categories = () => {
             🛡️ Solutions Professionnelles
           </div>
           <h2 className="text-3xl lg:text-5xl font-black font-h2 text-[#1e0a2d] tracking-tight">
-            Nos prestations <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5d3077] to-[#00d26a]">populaires</span>
+            {data?.title ? (
+              <span dangerouslySetInnerHTML={{
+                __html: data.title.replace(/populaires/g, '<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#5d3077] to-[#00d26a]">populaires</span>')
+              }} />
+            ) : (
+              <>
+                Nos prestations <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5d3077] to-[#00d26a]">populaires</span>
+              </>
+            )}
           </h2>
           <p className="text-gray-500 max-w-xl mx-auto">
-            Découvrez nos principaux types d'interventions de débarras en France. Nous nous adaptons à toutes les situations.
+            {data?.subtitle || "Découvrez nos principaux types d'interventions de débarras en France. Nous nous adaptons à toutes les situations."}
           </p>
         </div>
 
@@ -60,9 +80,9 @@ const Categories = () => {
                   alt={work.title}
                   className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
-                {work.popular && (
+                {(work.popular || work.icon) && (
                   <div className="absolute top-4 right-4 z-20 bg-[#00d26a] text-white px-3 py-1 rounded-full text-xs font-black shadow-lg flex items-center gap-1">
-                    🔥 Recommandé
+                    {work.icon || "🔥"} {work.popular ? "Recommandé" : "Domaine"}
                   </div>
                 )}
               </div>
@@ -84,7 +104,7 @@ const Categories = () => {
                     </svg>
                   </div>
                   <p className="text-xs font-bold text-[#1e0a2d] uppercase tracking-wider">
-                    {work.stats}
+                    {work.stats || "Intervention Pro"}
                   </p>
                 </div>
 
