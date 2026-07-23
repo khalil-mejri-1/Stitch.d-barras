@@ -1,11 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Hero = () => {
+const Hero = ({ data, isAdmin, onEdit }) => {
   const navigate = useNavigate();
 
   return (
     <section className="bg-mesh relative text-white pt-40 pb-24 z-20">
+      {/* Admin Edit Button */}
+      {isAdmin && (
+        <div className="absolute top-28 right-6 z-50">
+          <button
+            onClick={onEdit}
+            className="px-4 py-2 bg-[#00d26a] hover:bg-[#00b95c] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(0,210,106,0.4)] transition-all flex items-center gap-2 text-sm group"
+          >
+            <span>✏️</span> Modifier Section Hero
+          </button>
+        </div>
+      )}
+
       {/* Abstract background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00d26a]/10 rounded-full blur-[120px] -mr-64 -mt-32"></div>
@@ -20,15 +32,25 @@ const Hero = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d26a] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00d26a]"></span>
               </span>
-              Service Professionnel de Débarras en France
+              {data?.badge || "Service Professionnel de Débarras en France"}
             </div>
-            <h1 className="text-3xl lg:text-6xl font-h1 font-black leading-[1.1] tracking-tight">
-              Libérez de l'espace <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">sans effort</span> <br />
-              avec <span className="text-[#00d26a]">Stitch</span>
+            <h1 className="text-3xl lg:text-6xl font-h1 font-black leading-[1.1] tracking-tight whitespace-pre-line">
+              {data?.title ? (
+                <span dangerouslySetInnerHTML={{ 
+                  __html: data.title
+                    .replace(/sans effort/g, '<span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">sans effort</span>')
+                    .replace(/Stitch/g, '<span class="text-[#00d26a]">Stitch</span>') 
+                }} />
+              ) : (
+                <>
+                  Libérez de l'espace <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">sans effort</span> <br />
+                  avec <span className="text-[#00d26a]">Stitch</span>
+                </>
+              )}
             </h1>
             <p className="text-lg text-gray-300 max-w-lg">
-              Maison, appartement, cave ou bureau: nous trions, recyclons et nettoyons après débarras de manière écoresponsable.
+              {data?.subtitle || "Maison, appartement, cave ou bureau: nous trions, recyclons et nettoyons après débarras de manière écoresponsable."}
             </p>
           </div>
           <div className="space-y-6 max-w-lg">
@@ -48,10 +70,10 @@ const Hero = () => {
                   <span className="text-2xl">🏠</span>
                   <div>
                     <span className="text-lg font-bold block text-white group-hover/partic:text-[#00d26a] transition-colors">
-                      Vous êtes un Particulier ?
+                      {data?.button1Title || "Vous êtes un Particulier ?"}
                     </span>
                     <span className="text-xs text-gray-400 font-normal">
-                      Maison, appartement, cave, bureaux...
+                      {data?.button1Sub || "Maison, appartement, cave, bureaux..."}
                     </span>
                   </div>
                 </div>
@@ -74,10 +96,10 @@ const Hero = () => {
                   <span className="text-2xl">🏭</span>
                   <div>
                     <span className="text-lg font-bold block text-white group-hover/pro:text-[#00d26a] transition-colors">
-                      Vous êtes un Professionnel ?
+                      {data?.button2Title || "Vous êtes un Professionnel ?"}
                     </span>
                     <span className="text-xs text-gray-400 font-normal">
-                      Usines, Entrepôts, Domaines...
+                      {data?.button2Sub || "Usines, Entrepôts, Domaines..."}
                     </span>
                   </div>
                 </div>
@@ -114,7 +136,7 @@ const Hero = () => {
             <div className="absolute lg:-bottom-10 lg:-left-10 -bottom-4 -left-4 w-24 h-24 lg:w-32 lg:h-32 border-b-4 border-l-4 border-[#5d3077] rounded-bl-3xl"></div>
             
             <img 
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800" 
+              src={data?.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800"} 
               alt="Débarras moderne" 
               className="rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] w-full max-h-[480px] object-cover relative z-10 border border-white/10"
             />

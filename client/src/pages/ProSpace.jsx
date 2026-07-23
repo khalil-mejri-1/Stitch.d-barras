@@ -1,7 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import PageEditModal from '../components/PageEditModal';
 import { API_BASE_URL } from '../config';
 
 const ProSpace = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [pageData, setPageData] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
+
+  const defaultContent = {
+    header: {
+      badge: "🏭 Espace Professionnel & Industriel",
+      title: "Débarras de grands volumes Simple, rapide & écoresponsable",
+      subtitle: "Usines, entrepôts logistiques, châteaux ou grandes demeures : nous mettons à disposition nos experts de l'économie circulaire pour vider, trier et valoriser vos structures de grande taille."
+    },
+    cardsSection: {
+      cardsList: [
+        {
+          icon: "🏭",
+          title: "Usines & Industries",
+          desc: "Démantèlement de machines, enlèvement de déchets industriels banals, tri de métaux, et nettoyage complet des sites de production."
+        },
+        {
+          icon: "📦",
+          title: "Entrepôts & Dépôts",
+          desc: "Destockage massif, gestion des invendus, évacuation de racks métalliques, cartons, palettes de stockage et nettoyage de dalles béton."
+        },
+        {
+          icon: "🏰",
+          title: "Grands Domaines",
+          desc: "Manoirs, châteaux, domaines agricoles ou grandes villas. Inventaire précis, débarras de meubles anciens, archivage et nettoyage après sinistre."
+        }
+      ]
+    }
+  };
+
   const [formData, setFormData] = useState({
     spaceType: 'Usine',
     area: 500,
@@ -24,6 +57,62 @@ const ProSpace = () => {
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    try {
+      const userObj = localStorage.getItem('user');
+      if (userObj) {
+        const user = JSON.parse(userObj);
+        setIsAdmin(user.role === 'admin');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    const fetchContent = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/pages/pro-space`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.content && Object.keys(data.content).length > 0) {
+            setPageData(data.content);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchContent();
+  }, []);
+
+  const handleEditClick = (section) => {
+    setActiveSection(section);
+    setIsEditOpen(true);
+  };
+
+  const handleSave = async (updatedSectionContent) => {
+    const currentFullContent = pageData || defaultContent;
+    const updatedFullContent = {
+      ...currentFullContent,
+      [activeSection]: updatedSectionContent
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/pages/pro-space`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: updatedFullContent })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPageData(data.content);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Dynamic pricing and logistics estimation
   useEffect(() => {
@@ -116,6 +205,10 @@ const ProSpace = () => {
     setFormData(prev => ({ ...prev, photoCount: prev.photoCount + 2 }));
   };
 
+  const content = pageData || defaultContent;
+  const header = content.header || defaultContent.header;
+  const cardsSection = content.cardsSection || defaultContent.cardsSection;
+
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-28 pb-16 relative overflow-hidden">
       {/* Premium Background elements */}
@@ -127,49 +220,57 @@ const ProSpace = () => {
       <div className="max-w-[1280px] mx-auto px-gutter relative z-10 space-y-10">
         
         {/* Header Hero Area */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
+        <div className="relative group/sec border border-transparent hover:border-[#00d26a]/20 rounded-3xl p-6 transition-all duration-300 text-center space-y-4 max-w-2xl mx-auto">
+          {isAdmin && (
+            <button
+              onClick={() => handleEditClick('header')}
+              className="absolute top-2 right-2 z-40 px-3 py-1.5 bg-[#00d26a] hover:bg-[#00b95c] text-white font-bold rounded-lg shadow-lg opacity-80 hover:opacity-100 transition-all text-xs flex items-center gap-1.5"
+            >
+              <span>✏️</span> Modifier En-tête
+            </button>
+          )}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00d26a]/10 border border-[#00d26a]/30 text-[#00d26a] text-xs font-black tracking-widest uppercase">
-            <span>🏭</span> Espace Professionnel & Industriel
+            {header.badge}
           </div>
           <h1 className="text-2xl lg:text-4xl font-black font-h1 leading-tight tracking-tight">
-            Débarras de grands volumes <br />
-            <span className="text-[#00d26a]">Simple, rapide & écoresponsable</span>
+            {header.title ? (
+              <span dangerouslySetInnerHTML={{
+                __html: header.title.replace(/Simple, rapide & écoresponsable/g, '<span class="text-[#00d26a]">Simple, rapide & écoresponsable</span>')
+              }} />
+            ) : (
+              <>
+                Débarras de grands volumes <br />
+                <span className="text-[#00d26a]">Simple, rapide & écoresponsable</span>
+              </>
+            )}
           </h1>
           <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-            Usines, entrepôts logistiques, châteaux ou grandes demeures : nous mettons à disposition nos experts de l'économie circulaire pour vider, trier et valoriser vos structures de grande taille.
+            {header.subtitle}
           </p>
         </div>
 
         {/* Dynamic Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:bg-white/10 hover:border-[#00d26a]/30 transition-all duration-300 group">
-            <div className="w-14 h-14 bg-[#00d26a]/10 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-              🏭
-            </div>
-            <h3 className="text-2xl font-bold mb-3">Usines & Industries</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Démantèlement de machines, enlèvement de déchets industriels banals, tri de métaux, et nettoyage complet des sites de production.
-            </p>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:bg-white/10 hover:border-[#00d26a]/30 transition-all duration-300 group">
-            <div className="w-14 h-14 bg-[#00d26a]/10 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-              📦
-            </div>
-            <h3 className="text-2xl font-bold mb-3">Entrepôts & Dépôts</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Destockage massif, gestion des invendus, évacuation de racks métalliques, cartons, palettes de stockage et nettoyage de dalles béton.
-            </p>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:bg-white/10 hover:border-[#00d26a]/30 transition-all duration-300 group">
-            <div className="w-14 h-14 bg-[#00d26a]/10 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
-              🏰
-            </div>
-            <h3 className="text-2xl font-bold mb-3">Grands Domaines</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Manoirs, châteaux, domaines agricoles ou grandes villas. Inventaire précis, débarras de meubles anciens, archivage et nettoyage après sinistre.
-            </p>
+        <div className="relative group/sec border border-transparent hover:border-[#00d26a]/20 rounded-[3rem] p-6 transition-all duration-300">
+          {isAdmin && (
+            <button
+              onClick={() => handleEditClick('cardsSection')}
+              className="absolute top-4 right-4 z-40 px-3 py-1.5 bg-[#00d26a] hover:bg-[#00b95c] text-white font-bold rounded-lg shadow-lg opacity-80 hover:opacity-100 transition-all text-xs flex items-center gap-1.5"
+            >
+              <span>✏️</span> Modifier Secteurs
+            </button>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {cardsSection.cardsList?.map((card, index) => (
+              <div key={index} className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:bg-white/10 hover:border-[#00d26a]/30 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-[#00d26a]/10 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                  {card.icon}
+                </div>
+                <h3 className="text-2xl font-bold mb-3">{card.title}</h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  {card.desc}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -492,6 +593,14 @@ const ProSpace = () => {
         )}
 
       </div>
+
+      <PageEditModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        pageId={`pro-space.${activeSection}`}
+        initialContent={content[activeSection]}
+        onSave={handleSave}
+      />
     </div>
   );
 };
