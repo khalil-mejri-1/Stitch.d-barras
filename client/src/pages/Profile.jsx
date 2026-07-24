@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 const Profile = () => {
   const [profile, setProfile] = useState(() => {
@@ -30,6 +31,25 @@ const Profile = () => {
 
   const [activeTab, setActiveTab] = useState('settings');
   const [successMsg, setSuccessMsg] = useState('');
+  const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/bookings`);
+        if (res.ok) {
+          const data = await res.json();
+          const filtered = data.filter(b => b.email.toLowerCase() === profile.email.toLowerCase());
+          setBookings(filtered);
+        }
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+      }
+    };
+    if (profile.email) {
+      fetchBookings();
+    }
+  }, [profile.email]);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -57,11 +77,6 @@ const Profile = () => {
     setSuccessMsg('Profil mis à jour avec succès !');
     setTimeout(() => setSuccessMsg(''), 3000);
   };
-
-  const history = [
-    { id: "ST-8832", service: "Débarras de Maison complète", date: "12 Juin 2026", volume: "35 m³", status: "Planifié", price: "1 450 €" },
-    { id: "ST-8710", service: "Débarras d'Appartement & Cave", date: "15 Janvier 2026", volume: "10 m³", status: "Complété", price: "490 €" }
-  ];
 
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-32 pb-20 relative overflow-hidden">
@@ -182,26 +197,30 @@ const Profile = () => {
             <h3 className="text-2xl font-black font-h2 border-b border-white/10 pb-4">Mes Interventions</h3>
             
             <div className="space-y-4">
-              {history.map((h, i) => (
-                <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-white/20 transition-all">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#00d26a] text-xs font-bold">{h.id}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${h.status === 'Planifié' ? 'bg-[#00d26a]/20 text-[#00d26a]' : 'bg-white/10 text-gray-400'}`}>
-                        {h.status}
-                      </span>
+              {bookings.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">Aucune intervention planifiée pour le moment.</p>
+              ) : (
+                bookings.map((h, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-white/20 transition-all">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#00d26a] text-xs font-bold">{h.id}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${h.status === 'Planifié' ? 'bg-[#00d26a]/20 text-[#00d26a]' : 'bg-[#00d26a]/20 text-[#00d26a]'}`}>
+                          {h.status}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-bold">{h.service}</h4>
+                      <p className="text-xs text-gray-400">Prévu le : {h.date} | Volume: {h.volume}</p>
                     </div>
-                    <h4 className="text-lg font-bold">{h.service}</h4>
-                    <p className="text-xs text-gray-400">Prévu le : {h.date} | Volume: {h.volume}</p>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-white">{h.price} €</span>
+                      <button className="text-xs font-bold text-[#00d26a] hover:underline block mt-1">
+                        📄 Voir devis
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xl font-black text-white">{h.price}</span>
-                    <button className="text-xs font-bold text-[#00d26a] hover:underline block mt-1">
-                      📄 Voir devis
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

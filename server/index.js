@@ -177,6 +177,52 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Google Login route
+app.post("/api/google-login", async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ error: "Jeton manquant." });
+    }
+
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+    if (!response.ok) {
+      return res.status(400).json({ error: "Jeton Google invalide ou expiré." });
+    }
+
+    const payload = await response.json();
+    
+    // Verify client id (aud)
+    const CLIENT_ID = "1009149258614-7mssvk5u2tm0o562qj26mi99j3g0nb47.apps.googleusercontent.com";
+    if (payload.aud !== CLIENT_ID) {
+      return res.status(400).json({ error: "ID Client Google non correspondant." });
+    }
+
+    const { email, given_name, family_name } = payload;
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Auto-register google user
+      user = new User({
+        firstName: given_name || "Utilisateur",
+        lastName: family_name || "Google",
+        email,
+        password: Math.random().toString(36).slice(-8), // random password
+        role: "user"
+      });
+      await user.save();
+    }
+
+    res.status(200).json({
+      message: "Connexion réussie via Google !",
+      user: { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({ error: "Erreur lors de la connexion Google." });
+  }
+});
+
 // Bookings routes
 app.post("/api/bookings", async (req, res) => {
   try {
