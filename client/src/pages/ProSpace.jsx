@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PageEditModal from '../components/PageEditModal';
 import { API_BASE_URL } from '../config';
 
@@ -7,6 +7,9 @@ const ProSpace = () => {
   const [pageData, setPageData] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+  const [photos, setPhotos] = useState([]);
+  const fileInputRef = useRef(null);
 
   const defaultContent = {
     header: {
@@ -174,7 +177,8 @@ const ProSpace = () => {
       price: averagePrice,
       status: "Planifié",
       team: "Non assignée",
-      isPro: true
+      isPro: true,
+      photos: photos.map(p => p.dataUrl)
     };
 
     try {
@@ -196,13 +200,56 @@ const ProSpace = () => {
     }
   };
 
+  const processFiles = (files) => {
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (validFiles.length === 0) return;
+
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newPhoto = {
+          id: Math.random().toString(36).substring(2, 9),
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2) + ' Mo',
+          dataUrl: e.target.result
+        };
+        setPhotos(prev => [...prev, newPhoto]);
+        setFormData(prev => ({ ...prev, photoCount: prev.photoCount + 1 }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileInputChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(e.target.files);
+    }
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setFormData(prev => ({ ...prev, photoCount: prev.photoCount + 2 }));
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
+    }
+  };
+
+  const removePhoto = (id) => {
+    setPhotos(prev => prev.filter(p => p.id !== id));
+    setFormData(prev => ({ ...prev, photoCount: Math.max(0, prev.photoCount - 1) }));
   };
 
   const content = pageData || defaultContent;
@@ -506,18 +553,63 @@ const ProSpace = () => {
                   ></textarea>
 
                   {/* Photo Uploader Drag & Drop */}
-                  <div 
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    className="border-2 border-dashed border-white/10 hover:border-[#00d26a]/30 transition-colors rounded-2xl p-6 text-center cursor-pointer bg-white/2"
-                  >
-                    <span className="text-3xl block mb-2">📸</span>
-                    <p className="text-sm font-bold">Glissez et déposez des photos du site</p>
-                    <p className="text-xs text-gray-500 mt-1">Format JPG, PNG (Max 10Mo par fichier)</p>
-                    {formData.photoCount > 0 && (
-                      <span className="inline-block mt-3 bg-[#00d26a]/20 text-[#00d26a] text-xs font-bold px-3 py-1 rounded-full">
-                        {formData.photoCount} photos prêtes
-                      </span>
+                  <div className="space-y-3">
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileInputChange}
+                      multiple
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      className="hidden"
+                    />
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 ${
+                        dragActive 
+                          ? 'border-[#00d26a] bg-[#00d26a]/10 scale-[1.01]' 
+                          : 'border-white/10 hover:border-[#00d26a]/50 bg-white/[0.02] hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <span className="text-4xl block mb-2 transition-transform hover:scale-110">📸</span>
+                      <p className="text-sm font-bold text-white">Glissez et déposez des photos du site</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        ou <span className="text-[#00d26a] underline font-semibold">cliquez pour parcourir</span> (Format JPG, PNG - Max 10Mo par fichier)
+                      </p>
+                      
+                      {photos.length > 0 && (
+                        <div className="mt-3 inline-flex items-center gap-2 bg-[#00d26a]/20 text-[#00d26a] text-xs font-bold px-3.5 py-1 rounded-full border border-[#00d26a]/30">
+                          <span>✓ {photos.length} photo{photos.length > 1 ? 's' : ''} sélectionnée{photos.length > 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Photo Thumbnails Preview Grid */}
+                    {photos.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-2">
+                        {photos.map((photo) => (
+                          <div key={photo.id} className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/40 aspect-square shadow-lg">
+                            <img src={photo.dataUrl} alt={photo.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between">
+                              <button 
+                                type="button" 
+                                onClick={(e) => { e.stopPropagation(); removePhoto(photo.id); }}
+                                className="self-end bg-red-500/90 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow transition-colors"
+                                title="Supprimer la photo"
+                              >
+                                ✕
+                              </button>
+                              <div className="text-[10px] text-gray-200 truncate">
+                                <p className="font-bold truncate">{photo.name}</p>
+                                <p className="text-gray-400">{photo.size}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

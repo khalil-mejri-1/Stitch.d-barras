@@ -54,6 +54,24 @@
     transform: translateY(0);
   }
 
+  @keyframes shrinkWidth {
+    from { width: 100%; }
+    to { width: 0%; }
+  }
+
+  .animate-shrink-width {
+    animation: shrinkWidth 10s linear forwards;
+  }
+
+  @keyframes toastIn {
+    0% { transform: translateY(-30px) scale(0.9); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .animate-toast-in {
+    animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
