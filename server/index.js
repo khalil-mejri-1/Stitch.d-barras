@@ -9,7 +9,8 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 // MongoDB Connection
 if (!MONGODB_URI || MONGODB_URI.includes("<db_password>")) {
@@ -46,7 +47,8 @@ const bookingSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   status: { type: String, default: "Planifié" },
   team: { type: String, default: "Non assignée" },
-  isPro: { type: Boolean, default: false }
+  isPro: { type: Boolean, default: false },
+  photos: { type: Array, default: [] }
 });
 const Booking = mongoose.model("Booking", bookingSchema);
 
@@ -246,7 +248,7 @@ app.post("/api/bookings", async (req, res) => {
 
 app.get("/api/bookings", async (req, res) => {
   try {
-    const bookings = await Booking.find({});
+    const bookings = await Booking.find({}).sort({ _id: -1 });
     res.status(200).json(bookings);
   } catch (error) {
     console.error("Error fetching bookings:", error);

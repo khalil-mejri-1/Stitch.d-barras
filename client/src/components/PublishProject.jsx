@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 const PublishProject = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,27 @@ const PublishProject = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  const processFiles = (files) => {
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (validFiles.length === 0) return;
+
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newImage = {
+          id: Math.random().toString(36).substring(2, 9),
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2) + ' Mo',
+          dataUrl: e.target.result
+        };
+        setFormData(prev => ({ ...prev, images: [...prev.images, newImage] }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -28,22 +49,56 @@ const PublishProject = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const filesArray = Array.from(e.dataTransfer.files).map(file => file.name);
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...filesArray] }));
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
     }
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const filesArray = Array.from(e.target.files).map(file => file.name);
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...filesArray] }));
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(e.target.files);
     }
   };
 
-  const handleSubmit = (e) => {
+  const removeImage = (id) => {
+    setFormData(prev => ({ ...prev, images: prev.images.filter(img => img.id !== id) }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    
+    const bookingPayload = {
+      customer: formData.name,
+      email: formData.email,
+      tel: formData.phone || "Non renseigné",
+      service: `Débarras ${formData.serviceType}`,
+      volume: `${formData.volume} m³`,
+      cleaningExtra: false,
+      donationSorting: true,
+      date: new Date().toLocaleDateString('fr-FR'),
+      time: "À planifier",
+      address: formData.description || "Aucune description",
+      paymentMethod: "CB / Devis",
+      price: Math.round(Number(formData.volume) * 45),
+      status: "Planifié",
+      team: "Non assignée",
+      isPro: false,
+      photos: formData.images.map(img => img.dataUrl)
+    };
+
+    try {
+      await fetch(`${API_BASE_URL}/api/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload)
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setSubmitted(true);
+    }
   };
 
   return (
@@ -182,17 +237,24 @@ const PublishProject = () => {
               </div>
 
               {formData.images.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {formData.images.map((name, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-xs font-bold text-gray-600">
-                      <span>📎 {name}</span>
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
-                        className="text-red-500 font-bold hover:text-red-700"
-                      >
-                        ✕
-                      </button>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {formData.images.map((img) => (
+                    <div key={img.id} className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-100 aspect-square shadow-sm">
+                      <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between">
+                        <button 
+                          type="button" 
+                          onClick={() => removeImage(img.id)}
+                          className="self-end bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow transition-colors"
+                          title="Supprimer l'image"
+                        >
+                          ✕
+                        </button>
+                        <div className="text-[10px] text-white truncate">
+                          <p className="font-bold truncate">{img.name}</p>
+                          <p className="text-gray-300">{img.size}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

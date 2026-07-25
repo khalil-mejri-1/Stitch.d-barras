@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config';
 
 const AdminDashboard = () => {
@@ -12,7 +12,40 @@ const AdminDashboard = () => {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [newOrderAlert, setNewOrderAlert] = useState(null);
+  const isFirstLoadRef = useRef(true);
+  const prevBookingIdsRef = useRef([]);
+
+  const playNotificationSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch (e) {
+      // Audio autoplay restrictions ignored silently
+    }
+  };
+
   const [bookings, setBookings] = useState([]);
+  const [seenBookingIds, setSeenBookingIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seen_booking_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   const [customers, setCustomers] = useState([
     { id: "C-901", name: "Khalil Ben Ali", email: "khalil.benali@email.com", bookings: 3, totalSpent: 2465, note: "Client régulier, syndic d'immeuble", rating: 4.8 },
@@ -35,18 +68,59 @@ const AdminDashboard = () => {
     diogeneRate: 90
   });
 
+  const markAllBookingsAsSeen = () => {
+    setBookings(currentBookings => {
+      const allIds = currentBookings.map(b => b.id);
+      if (allIds.length > 0) {
+        setSeenBookingIds(prev => {
+          const combined = Array.from(new Set([...prev, ...allIds]));
+          localStorage.setItem('seen_booking_ids', JSON.stringify(combined));
+          return combined;
+        });
+      }
+      return currentBookings;
+    });
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings`);
+      if (bookingsRes.ok) {
+        const bookingsData = await bookingsRes.json();
+        const list = bookingsData || [];
+
+        // Check if there is a new order received during live polling
+        if (!isFirstLoadRef.current && prevBookingIdsRef.current.length > 0) {
+          const freshArrival = list.find(b => !prevBookingIdsRef.current.includes(b.id));
+          if (freshArrival) {
+            setNewOrderAlert(freshArrival);
+            playNotificationSound();
+          }
+        } else {
+          isFirstLoadRef.current = false;
+        }
+
+        prevBookingIdsRef.current = list.map(b => b.id);
+        setBookings(list);
+
+        const savedStr = localStorage.getItem('seen_booking_ids');
+        if (!savedStr && list.length > 0) {
+          const initialSeen = list.map(b => b.id);
+          localStorage.setItem('seen_booking_ids', JSON.stringify(initialSeen));
+          setSeenBookingIds(initialSeen);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [bookingsRes, usersRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/bookings`),
-          fetch(`${API_BASE_URL}/api/users`)
-        ]);
-        if (bookingsRes.ok) {
-          const bookingsData = await bookingsRes.json();
-          setBookings(bookingsData || []);
-        }
+        await fetchBookings();
+        const usersRes = await fetch(`${API_BASE_URL}/api/users`);
         if (usersRes.ok) {
           const usersData = await usersRes.json();
           setRegisteredUsers(usersData);
@@ -58,7 +132,43 @@ const AdminDashboard = () => {
       }
     };
     loadData();
+
+    const interval = setInterval(fetchBookings, 4000);
+    return () => clearInterval(interval);
   }, []);
+
+  const triggerTestAlert = () => {
+    const testBooking = {
+      id: `ST-${Math.floor(1000 + Math.random() * 9000)}`,
+      customer: "Amine Triki (Exemple Client)",
+      email: "amine.triki@email.com",
+      tel: "06 12 34 56 78",
+      service: "Débarras Villa & Extérieurs",
+      volume: "35 m³",
+      price: 1575,
+      date: new Date().toLocaleDateString('fr-FR'),
+      photos: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=300"]
+    };
+    setNewOrderAlert(testBooking);
+    playNotificationSound();
+  };
+
+  useEffect(() => {
+    if (newOrderAlert) {
+      const timer = setTimeout(() => {
+        setNewOrderAlert(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [newOrderAlert]);
+
+  const unreadCount = bookings.filter(b => !seenBookingIds.includes(b.id)).length;
+
+  useEffect(() => {
+    if (activeSubTab === 'bookings' && unreadCount > 0) {
+      markAllBookingsAsSeen();
+    }
+  }, [activeSubTab, bookings]);
 
   const handleStatusChange = async (id, newStatus) => {
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
@@ -693,13 +803,21 @@ const AdminDashboard = () => {
     );
   }
 
-  const filteredBookings = bookings.filter(b => {
-    const matchesSearch = b.customer.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          b.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          b.service.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredBookings = [...bookings]
+    .sort((a, b) => {
+      const aUnseen = !seenBookingIds.includes(a.id);
+      const bUnseen = !seenBookingIds.includes(b.id);
+      if (aUnseen && !bUnseen) return -1;
+      if (!aUnseen && bUnseen) return 1;
+      return 0;
+    })
+    .filter(b => {
+      const matchesSearch = b.customer.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            b.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            b.service.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
 
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-32 pb-20">
@@ -708,8 +826,20 @@ const AdminDashboard = () => {
         {/* Admin Navigation Sidebar */}
         <div className="lg:col-span-1 bg-white/5 border border-white/10 rounded-[2.5rem] p-6 space-y-6 glass">
           <div className="space-y-1 border-b border-white/10 pb-6 text-center lg:text-left">
-            <h3 className="text-xl font-black font-h2 text-red-400">Panel Admin</h3>
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Superviseur Stitch</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black font-h2 text-red-400">Panel Admin</h3>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Superviseur Stitch</p>
+              </div>
+              <button
+                type="button"
+                onClick={triggerTestAlert}
+                className="px-2.5 py-1.5 bg-white/10 hover:bg-[#00d26a]/20 border border-white/10 hover:border-[#00d26a]/40 text-[11px] font-black text-gray-300 hover:text-[#00d26a] rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-1"
+                title="Simuler l'arrivée d'une nouvelle commande"
+              >
+                <span>🔔</span> Test
+              </button>
+            </div>
           </div>
 
           <nav className="flex flex-col gap-2">
@@ -771,12 +901,20 @@ const AdminDashboard = () => {
               }
             ].map(tab => {
               const isLocked = tab.id !== 'bookings' && tab.id !== 'customers';
+              const isBookingsTab = tab.id === 'bookings';
               return (
                 <button
                   key={tab.id}
                   disabled={isLocked}
-                  onClick={() => !isLocked && setActiveSubTab(tab.id)}
-                  className={`w-full text-left p-3.5 rounded-2xl text-sm font-bold transition-all flex items-center justify-between ${
+                  onClick={() => {
+                    if (!isLocked) {
+                      setActiveSubTab(tab.id);
+                      if (isBookingsTab) {
+                        markAllBookingsAsSeen();
+                      }
+                    }
+                  }}
+                  className={`w-full text-left p-3.5 rounded-2xl text-sm font-bold transition-all flex items-center justify-between group ${
                     activeSubTab === tab.id 
                       ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' 
                       : isLocked
@@ -788,6 +926,17 @@ const AdminDashboard = () => {
                     <span>{tab.icon}</span>
                     <span>{tab.name}</span>
                   </div>
+
+                  {isBookingsTab && unreadCount > 0 && (
+                    <span className={`px-2.5 py-0.5 text-xs font-black rounded-full shadow-lg transition-all animate-pulse flex items-center gap-1 ${
+                      activeSubTab === 'bookings'
+                        ? 'bg-white text-red-600'
+                        : 'bg-red-500 text-white border border-white/20'
+                    }`}>
+                      <span>🔔</span> {unreadCount}
+                    </span>
+                  )}
+
                   {isLocked && <span className="text-[10px] text-gray-500">🔒</span>}
                 </button>
               );
@@ -851,7 +1000,13 @@ const AdminDashboard = () => {
                 </div>
                 
                 {/* Stats quick view */}
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
+                  {unreadCount > 0 && (
+                    <div className="bg-red-500/20 border border-red-500/40 rounded-xl px-4 py-2 text-center animate-pulse">
+                      <span className="block text-[10px] text-red-300 uppercase font-black">Nouveaux 🔔</span>
+                      <span className="text-lg font-bold text-red-400">{unreadCount}</span>
+                    </div>
+                  )}
                   <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-center">
                     <span className="block text-[10px] text-gray-400 uppercase font-black">Total</span>
                     <span className="text-lg font-bold text-white">{bookings.length}</span>
@@ -1736,6 +1891,95 @@ const AdminDashboard = () => {
                   Fermer
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Creative Real-Time New Order Toast Alert */}
+      {newOrderAlert && (
+        <div className="fixed top-6 right-6 z-[999999] max-w-md w-full animate-toast-in">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#1e0a2d]/95 via-[#2a1140]/95 to-[#12051d]/95 backdrop-blur-2xl border-2 border-[#00d26a]/60 shadow-[0_15px_50px_rgba(0,210,106,0.35)] rounded-3xl p-6 text-white space-y-4">
+            {/* Ambient glows */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#00d26a]/25 rounded-full blur-2xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#5d3077]/35 rounded-full blur-2xl pointer-events-none"></div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between relative z-10 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d26a] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#00d26a]"></span>
+                </span>
+                <span className="text-xs font-black uppercase tracking-widest text-[#00d26a] flex items-center gap-1.5">
+                  <span>🚨</span> NOUVELLE COMMANDE EN DIRECT !
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewOrderAlert(null)}
+                className="text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Order Card Info */}
+            <div className="relative z-10 bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Client</span>
+                  <p className="text-base font-black text-white">{newOrderAlert.customer}</p>
+                </div>
+                <span className="px-3 py-1 bg-[#00d26a]/20 text-[#00d26a] border border-[#00d26a]/40 text-sm font-black rounded-xl shadow-inner">
+                  {newOrderAlert.price ? `${newOrderAlert.price} €` : 'Sur devis'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1 text-gray-300 border-t border-white/5">
+                <div>
+                  <span className="text-[10px] text-gray-400 block">Service</span>
+                  <span className="font-semibold text-white truncate block">{newOrderAlert.service}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-400 block">Volume / Dim</span>
+                  <span className="font-semibold text-white block">{newOrderAlert.volume || '15 m³'}</span>
+                </div>
+              </div>
+
+              {newOrderAlert.photos && newOrderAlert.photos.length > 0 && (
+                <div className="pt-2 flex items-center gap-1.5 text-xs text-[#00d26a] font-bold border-t border-white/5">
+                  <span>📸</span>
+                  <span>{newOrderAlert.photos.length} photo{newOrderAlert.photos.length > 1 ? 's' : ''} jointe{newOrderAlert.photos.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-2 relative z-10 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveSubTab('bookings');
+                  setSelectedBooking(newOrderAlert);
+                  setNewOrderAlert(null);
+                }}
+                className="flex-1 py-3 px-4 bg-[#00d26a] hover:bg-[#00b359] text-white font-black text-xs rounded-xl shadow-lg shadow-[#00d26a]/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>👁️ Voir la commande ({newOrderAlert.id})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewOrderAlert(null)}
+                className="py-3 px-4 bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Fermer
+              </button>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden relative z-10">
+              <div className="bg-gradient-to-r from-[#00d26a] to-[#5d3077] h-full w-full animate-shrink-width"></div>
             </div>
           </div>
         </div>
