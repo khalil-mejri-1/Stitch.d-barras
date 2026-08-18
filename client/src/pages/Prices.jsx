@@ -10,6 +10,11 @@ const Prices = () => {
   const [activeSection, setActiveSection] = useState('');
   const [volume, setVolume] = useState(15);
 
+  // Admin rates modal
+  const [isRatesModalOpen, setIsRatesModalOpen] = useState(false);
+  const [tempRates, setTempRates] = useState({ small: 55, medium: 45, large: 38 });
+  const [ratesSuccessMsg, setRatesSuccessMsg] = useState(false);
+
   const defaultContent = {
     header: {
       badge: "🏷️ Tarifs Clairs et Transparents",
@@ -47,6 +52,14 @@ const Prices = () => {
     compareTable: {
       title: "Comparatif des niveaux de service",
       subtitle: "Comparez nos formules d'intervention pour trouver celle qui correspond à votre projet."
+    },
+    simulatorRates: {
+      small: 55,
+      medium: 45,
+      large: 38,
+      smallLabel: "Petits volumes (< 10 m³)",
+      mediumLabel: "Volume standard (10 – 30 m³)",
+      largeLabel: "Grand volume (> 30 m³)"
     }
   };
 
@@ -68,6 +81,13 @@ const Prices = () => {
           const data = await res.json();
           if (data && data.content && Object.keys(data.content).length > 0) {
             setPageData(data.content);
+            if (data.content.simulatorRates) {
+              setTempRates({
+                small: data.content.simulatorRates.small || 55,
+                medium: data.content.simulatorRates.medium || 45,
+                large: data.content.simulatorRates.large || 38
+              });
+            }
           }
         }
       } catch (e) {
@@ -88,13 +108,10 @@ const Prices = () => {
       ...currentFullContent,
       [activeSection]: updatedSectionContent
     };
-
     try {
       const res = await fetch(`${API_BASE_URL}/api/pages/prices`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: updatedFullContent })
       });
       if (res.ok) {
@@ -106,28 +123,72 @@ const Prices = () => {
     }
   };
 
-  const getEstimatedCost = () => {
-    let rate = 45;
-    if (volume < 10) rate = 55;
-    else if (volume > 30) rate = 38;
-    return volume * rate;
-  };
-
-  const formulaExplanation = () => {
-    if (volume < 10) return "55€/m³ (Petits volumes, frais fixes d'acheminement inclus)";
-    if (volume > 30) return "38€/m³ (Tarif dégressif grand volume avantageux)";
-    return "45€/m³ (Tarif standard moyen volume)";
+  const handleSaveRates = async (e) => {
+    if (e) e.preventDefault();
+    const currentFullContent = pageData || defaultContent;
+    const updatedFullContent = {
+      ...currentFullContent,
+      simulatorRates: {
+        ...((pageData?.simulatorRates) || defaultContent.simulatorRates),
+        small: tempRates.small,
+        medium: tempRates.medium,
+        large: tempRates.large
+      }
+    };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/pages/prices`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: updatedFullContent })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPageData(data.content);
+        setIsRatesModalOpen(false);
+        setRatesSuccessMsg(true);
+        setTimeout(() => setRatesSuccessMsg(false), 4000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const content = pageData || defaultContent;
   const header = content.header || defaultContent.header;
   const pricingTable = content.pricingTable || defaultContent.pricingTable;
   const compareTable = content.compareTable || defaultContent.compareTable;
+  const simRates = content.simulatorRates || defaultContent.simulatorRates;
+
+  const getRate = () => {
+    const vol = Math.max(1, Number(volume) || 1);
+    if (vol < 10) return simRates.small || 55;
+    if (vol > 30) return simRates.large || 38;
+    return simRates.medium || 45;
+  };
+
+  const getEstimatedCost = () => {
+    const vol = Math.max(1, Number(volume) || 1);
+    return vol * getRate();
+  };
+
+  const getRateLabel = () => {
+    const vol = Math.max(1, Number(volume) || 1);
+    if (vol < 10) return `${simRates.small || 55} €/m³ — ${simRates.smallLabel || 'Petits volumes'}`;
+    if (vol > 30) return `${simRates.large || 38} €/m³ — ${simRates.largeLabel || 'Grand volume'}`;
+    return `${simRates.medium || 45} €/m³ — ${simRates.mediumLabel || 'Volume standard'}`;
+  };
+
+  const getTier = () => {
+    const vol = Math.max(1, Number(volume) || 1);
+    if (vol < 10) return 'small';
+    if (vol > 30) return 'large';
+    return 'medium';
+  };
 
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-32 pb-20 relative">
       <div className="max-w-[1280px] mx-auto px-gutter space-y-24">
-        
+
         {/* Header */}
         <div className="relative group/sec border border-transparent hover:border-[#00d26a]/20 rounded-3xl p-6 transition-all duration-300 text-center space-y-6 max-w-3xl mx-auto">
           {isAdmin && (
@@ -147,55 +208,145 @@ const Prices = () => {
                 __html: header.title.replace(/débarras \?/g, '<span class="text-[#00d26a]">débarras ?</span>')
               }} />
             ) : (
-              <>
-                Combien coûte un <span className="text-[#00d26a]">débarras ?</span>
-              </>
+              <>Combien coûte un <span className="text-[#00d26a]">débarras ?</span></>
             )}
           </h1>
-          <p className="text-gray-400 text-lg">
-            {header.subtitle}
-          </p>
+          <p className="text-gray-400 text-lg">{header.subtitle}</p>
         </div>
 
-        {/* Interactive Calculator Slider */}
+        {/* Interactive Volume Simulator */}
         <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 glass max-w-4xl mx-auto space-y-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#00d26a] rounded-full blur-[100px] opacity-10"></div>
-          
-          <div className="text-center space-y-2">
-            <h3 className="text-2xl lg:text-3xl font-black font-h2">Simulateur de Tarif au Volume</h3>
-            <p className="text-gray-400 text-sm">Faites glisser le curseur pour estimer le coût selon le volume d'encombrants.</p>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#00d26a] rounded-full blur-[100px] opacity-10 pointer-events-none"></div>
+
+          {/* Header with admin button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-center sm:text-left space-y-1">
+              <h3 className="text-2xl lg:text-3xl font-black font-h2">Simulateur de Tarif au Volume</h3>
+              <p className="text-gray-400 text-sm">Faites glisser le curseur ou saisissez votre volume pour estimer le coût.</p>
+            </div>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTempRates({
+                    small: simRates.small || 55,
+                    medium: simRates.medium || 45,
+                    large: simRates.large || 38
+                  });
+                  setIsRatesModalOpen(true);
+                }}
+                className="px-4 py-2 bg-[#00d26a]/15 hover:bg-[#00d26a] border border-[#00d26a]/40 hover:border-[#00d26a] text-[#00d26a] hover:text-white rounded-xl text-xs font-black transition-all shadow-md active:scale-95 flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer"
+              >
+                <span>⚙️</span> Modifier les tarifs /m³
+              </button>
+            )}
           </div>
 
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-bold text-gray-400">Volume estimé</span>
-              <span className="text-3xl font-black text-[#00d26a] bg-[#00d26a]/10 px-4 py-2 rounded-2xl">{volume} m³</span>
+          {ratesSuccessMsg && (
+            <div className="p-3 bg-[#00d26a]/20 border border-[#00d26a]/50 rounded-xl text-[#00d26a] text-xs font-bold flex items-center gap-2">
+              <span>✓</span> Tarifs au m³ mis à jour avec succès et appliqués immédiatement !
             </div>
-            <input 
+          )}
+
+          {/* Volume control */}
+          <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span className="text-sm font-bold text-gray-300">Volume estimé</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400 font-medium">Saisie directe :</span>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="1"
+                    value={volume}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1);
+                      setVolume(val);
+                    }}
+                    className="w-28 text-right pr-9 pl-3 py-1.5 bg-[#00d26a]/15 border border-[#00d26a]/40 focus:border-[#00d26a] focus:ring-2 focus:ring-[#00d26a]/30 text-[#00d26a] rounded-xl font-black text-sm md:text-base outline-none transition-all"
+                    placeholder="ex: 25"
+                  />
+                  <span className="absolute right-3 text-[#00d26a] font-bold text-xs pointer-events-none">m³</span>
+                </div>
+              </div>
+            </div>
+
+            <input
               type="range"
-              min="2"
+              min="1"
               max="80"
-              value={volume}
-              onChange={(e) => setVolume(parseInt(e.target.value))}
-              className="w-full accent-[#00d26a]"
+              step="1"
+              value={typeof volume === 'number' ? Math.min(80, Math.max(1, volume)) : 1}
+              onChange={(e) => setVolume(parseInt(e.target.value) || 1)}
+              className="w-full accent-[#00d26a] h-2"
             />
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>2 m³ (Quelques meubles)</span>
-              <span>20 m³ (Appartement T2)</span>
-              <span>50 m³ (Pavillon complet)</span>
-              <span>80 m³ (Très grande maison)</span>
+
+            {/* Volume tier indicators */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {[
+                { label: '< 10 m³', sub: 'Quelques meubles', tier: 'small', rate: simRates.small || 55 },
+                { label: '10 – 30 m³', sub: 'Appartement', tier: 'medium', rate: simRates.medium || 45 },
+                { label: '> 30 m³', sub: 'Grande maison', tier: 'large', rate: simRates.large || 38 }
+              ].map(({ label, sub, tier, rate }) => (
+                <div
+                  key={tier}
+                  className={`rounded-xl p-2.5 border text-xs transition-all ${
+                    getTier() === tier
+                      ? 'bg-[#00d26a]/15 border-[#00d26a]/50 text-[#00d26a]'
+                      : 'bg-white/5 border-white/5 text-gray-400'
+                  }`}
+                >
+                  <p className="font-black">{label}</p>
+                  <p className="text-[10px] opacity-70 mt-0.5">{sub}</p>
+                  <p className={`font-black mt-1 ${getTier() === tier ? 'text-[#00d26a]' : 'text-gray-500'}`}>{rate} €/m³</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick presets */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5">
+              <span className="text-[11px] text-gray-400 font-medium">Raccourcis :</span>
+              {[2, 5, 10, 20, 35, 50, 80].map((val) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setVolume(val)}
+                  className={`px-2.5 py-1 text-xs rounded-lg font-bold border transition-all ${
+                    volume === val
+                      ? 'bg-[#00d26a]/20 border-[#00d26a] text-[#00d26a] shadow-[0_0_10px_rgba(0,210,106,0.2)]'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {val} m³
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Estimation result */}
           <div className="bg-[#1e0a2d]/50 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 border border-white/5">
-            <div className="space-y-1 text-center md:text-left">
+            <div className="space-y-2 text-center md:text-left">
               <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Estimation du coût</p>
-              <p className="text-4xl font-black text-[#00d26a]">{getEstimatedCost()} € <span className="text-xs text-gray-400 font-normal">TTC</span></p>
-              <p className="text-xs text-purple-300 font-semibold">{formulaExplanation()}</p>
+              <p className="text-4xl md:text-5xl font-black text-[#00d26a]">
+                {getEstimatedCost().toLocaleString()} €{' '}
+                <span className="text-xs text-gray-400 font-normal">TTC</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded-full text-[11px] font-black ${
+                  getTier() === 'small'
+                    ? 'bg-blue-500/15 text-blue-300'
+                    : getTier() === 'large'
+                      ? 'bg-yellow-400/15 text-yellow-300'
+                      : 'bg-[#00d26a]/15 text-[#00d26a]'
+                }`}>
+                  {getRateLabel()}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500">Estimation non-contractuelle. Devis gratuit sous 24h.</p>
             </div>
-            <Link 
+            <Link
               to={`/booking?service=Débarras&volume=${volume}`}
-              className="w-full md:w-auto px-8 py-4 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-xl text-center shadow-xl shadow-[#00d26a]/20 transition-all"
+              className="w-full md:w-auto px-8 py-4 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-xl text-center shadow-xl shadow-[#00d26a]/20 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
             >
               Réserver cette estimation
             </Link>
@@ -221,7 +372,7 @@ const Prices = () => {
             {pricingTable.packages?.map((pack, idx) => {
               const features = pack.featuresList ? pack.featuresList.split(',').map(f => f.trim()) : [];
               return (
-                <div 
+                <div
                   key={idx}
                   className={`bg-white/5 border rounded-[2.5rem] p-8 flex flex-col h-full glass transition-all ${pack.popular ? 'border-[#00d26a] relative' : 'border-white/10'}`}
                 >
@@ -251,7 +402,7 @@ const Prices = () => {
                     ))}
                   </ul>
 
-                  <Link 
+                  <Link
                     to={`/booking?service=${encodeURIComponent(pack.title)}`}
                     className={`w-full py-4 text-center rounded-2xl font-black transition-all ${pack.popular ? 'bg-[#00d26a] hover:bg-[#00b058] text-white shadow-lg shadow-[#00d26a]/20' : 'bg-white/10 hover:bg-white/20 text-white'}`}
                   >
@@ -318,6 +469,124 @@ const Prices = () => {
         </div>
 
       </div>
+
+      {/* Admin Rates Configuration Modal */}
+      {isRatesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="bg-[#1e0a2d] border border-white/20 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-6 text-white">
+            <div className="flex justify-between items-start border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-xl font-black flex items-center gap-2">
+                  <span className="text-[#00d26a]">⚙️</span> Configuration des Tarifs au m³
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Définissez le prix par mètre cube selon le volume du client.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRatesModalOpen(false)}
+                className="text-gray-400 hover:text-white text-xl p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRates} className="space-y-4">
+
+              {/* Small rate */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📦</span>
+                  <div>
+                    <p className="font-bold text-sm text-blue-300">Petits volumes — moins de 10 m³</p>
+                    <p className="text-[11px] text-gray-400">Quelques meubles, studio, cave…</p>
+                  </div>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={tempRates.small}
+                    onChange={(e) => setTempRates(prev => ({ ...prev, small: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-16 text-white font-black text-lg outline-none transition-all"
+                  />
+                  <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
+                </div>
+              </div>
+
+              {/* Medium rate */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🏠</span>
+                  <div>
+                    <p className="font-bold text-sm text-[#00d26a]">Volume standard — 10 à 30 m³</p>
+                    <p className="text-[11px] text-gray-400">Appartement T2/T3, débarras classique</p>
+                  </div>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={tempRates.medium}
+                    onChange={(e) => setTempRates(prev => ({ ...prev, medium: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-16 text-white font-black text-lg outline-none transition-all"
+                  />
+                  <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
+                </div>
+              </div>
+
+              {/* Large rate */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🏡</span>
+                  <div>
+                    <p className="font-bold text-sm text-yellow-300">Grand volume — plus de 30 m³</p>
+                    <p className="text-[11px] text-gray-400">Maison, pavillon, grande villa</p>
+                  </div>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={tempRates.large}
+                    onChange={(e) => setTempRates(prev => ({ ...prev, large: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-16 text-white font-black text-lg outline-none transition-all"
+                  />
+                  <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="bg-[#00d26a]/5 border border-[#00d26a]/20 rounded-xl p-3 text-xs text-gray-300 space-y-1">
+                <p className="font-bold text-[#00d26a] mb-1.5">Aperçu des paliers tarifaires :</p>
+                <p>📦 &lt; 10 m³ → <strong>{tempRates.small} €/m³</strong> (ex: 5 m³ = <strong>{(5 * tempRates.small).toLocaleString()} €</strong>)</p>
+                <p>🏠 10–30 m³ → <strong>{tempRates.medium} €/m³</strong> (ex: 20 m³ = <strong>{(20 * tempRates.medium).toLocaleString()} €</strong>)</p>
+                <p>🏡 &gt; 30 m³ → <strong>{tempRates.large} €/m³</strong> (ex: 50 m³ = <strong>{(50 * tempRates.large).toLocaleString()} €</strong>)</p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsRatesModalOpen(false)}
+                  className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-gray-300 font-bold rounded-xl text-sm transition-all cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#00d26a] hover:bg-[#00b058] text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-[#00d26a]/25 flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <span>💾</span> Enregistrer les tarifs
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <PageEditModal
         isOpen={isEditOpen}

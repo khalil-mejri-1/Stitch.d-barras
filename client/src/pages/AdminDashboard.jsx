@@ -1467,54 +1467,90 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              {/* General pricing (existing) */}
+              {/* General pricing (simulator & residential rates) */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                <h4 className="text-lg font-bold font-h2 text-gray-300">🏠 Tarifs Particuliers — Prix par m³</h4>
+                <div>
+                  <h4 className="text-lg font-bold font-h2 text-gray-300">🏠 Tarifs Particuliers & Simulateur (Prix par m³)</h4>
+                  <p className="text-xs text-gray-400 mt-1">Configurez les tarifs appliqués sur la page Tarifs (simulateur & forfaits).</p>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-400 font-bold">Maison standard (EUR / m³)</label>
+                    <label className="text-xs text-gray-400 font-bold">Petits volumes &lt; 10 m³ (EUR / m³)</label>
                     <input 
                       type="number" 
-                      value={pricingSettings.maisonRate}
-                      onChange={(e) => setPricingSettings(prev => ({ ...prev, maisonRate: parseInt(e.target.value) }))}
-                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-400 font-bold">Appartement urbain (EUR / m³)</label>
-                    <input 
-                      type="number" 
-                      value={pricingSettings.appartementRate}
-                      onChange={(e) => setPricingSettings(prev => ({ ...prev, appartementRate: parseInt(e.target.value) }))}
-                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-400 font-bold">Caves & Box (EUR / m³)</label>
-                    <input 
-                      type="number" 
+                      min="1"
                       value={pricingSettings.caveRate}
-                      onChange={(e) => setPricingSettings(prev => ({ ...prev, caveRate: parseInt(e.target.value) }))}
-                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
+                      onChange={(e) => setPricingSettings(prev => ({ ...prev, caveRate: parseInt(e.target.value) || 1 }))}
+                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:border-[#00d26a] outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400 font-bold">Volume standard 10–30 m³ (EUR / m³)</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={pricingSettings.appartementRate}
+                      onChange={(e) => setPricingSettings(prev => ({ ...prev, appartementRate: parseInt(e.target.value) || 1 }))}
+                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:border-[#00d26a] outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400 font-bold">Grand volume &gt; 30 m³ (EUR / m³)</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={pricingSettings.maisonRate}
+                      onChange={(e) => setPricingSettings(prev => ({ ...prev, maisonRate: parseInt(e.target.value) || 1 }))}
+                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:border-[#00d26a] outline-none"
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs text-gray-400 font-bold">Nettoyage Extrême / Diogène (EUR / m³)</label>
                     <input 
                       type="number" 
+                      min="1"
                       value={pricingSettings.diogeneRate}
-                      onChange={(e) => setPricingSettings(prev => ({ ...prev, diogeneRate: parseInt(e.target.value) }))}
-                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
+                      onChange={(e) => setPricingSettings(prev => ({ ...prev, diogeneRate: parseInt(e.target.value) || 1 }))}
+                      className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:border-[#00d26a] outline-none"
                     />
                   </div>
                 </div>
 
                 <button 
-                  onClick={() => setModal({ type: 'success', title: 'Tarifs mis à jour', message: 'Grille tarifaire particuliers mise à jour avec succès !' })}
-                  className="px-8 py-3 bg-white/10 hover:bg-white/15 text-white font-black rounded-xl transition-all cursor-pointer"
+                  onClick={async () => {
+                    try {
+                      const pageRes = await fetch(`${API_BASE_URL}/api/pages/prices`);
+                      let currentContent = {};
+                      if (pageRes.ok) {
+                        const pageData = await pageRes.json();
+                        currentContent = pageData.content || {};
+                      }
+                      const updatedContent = {
+                        ...currentContent,
+                        simulatorRates: {
+                          small: pricingSettings.caveRate || 55,
+                          medium: pricingSettings.appartementRate || 45,
+                          large: pricingSettings.maisonRate || 38
+                        }
+                      };
+                      const saveRes = await fetch(`${API_BASE_URL}/api/pages/prices`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: updatedContent })
+                      });
+                      if (saveRes.ok) {
+                        setModal({ type: 'success', title: '✅ Tarifs Particuliers mis à jour', message: 'Grille tarifaire et simulateur mis à jour avec succès !' });
+                      } else {
+                        setModal({ type: 'error', title: 'Erreur', message: 'Impossible de mettre à jour les tarifs.' });
+                      }
+                    } catch (err) {
+                      setModal({ type: 'error', title: 'Erreur réseau', message: 'Connexion au serveur impossible.' });
+                    }
+                  }}
+                  className="px-8 py-3 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-xl transition-all cursor-pointer shadow-lg shadow-[#00d26a]/20 active:scale-95 flex items-center gap-2"
                 >
-                  Enregistrer tarifs particuliers
+                  <span>💾</span> Enregistrer les tarifs particuliers
                 </button>
               </div>
             </div>
