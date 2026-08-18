@@ -35,12 +35,18 @@ const ProSpace = () => {
           desc: "Manoirs, châteaux, domaines agricoles ou grandes villas. Inventaire précis, débarras de meubles anciens, archivage et nettoyage après sinistre."
         }
       ]
+    },
+    rates: {
+      usine: 9,
+      entrepot: 5,
+      grandDomaine: 8,
+      autre: 6
     }
   };
 
   const [formData, setFormData] = useState({
     spaceType: 'Usine',
-    area: 500,
+    area: 100,
     hasHazardous: false,
     accessConstraint: 'easy',
     companyName: '',
@@ -55,8 +61,18 @@ const ProSpace = () => {
     minPrice: 0,
     maxPrice: 0,
     durationDays: 1,
-    teamSize: 2
+    teamSize: 2,
+    baseRate: 9
   });
+
+  const [isRatesModalOpen, setIsRatesModalOpen] = useState(false);
+  const [tempRates, setTempRates] = useState({
+    usine: 9,
+    entrepot: 5,
+    grandDomaine: 8,
+    autre: 6
+  });
+  const [ratesSuccessMsg, setRatesSuccessMsg] = useState(false);
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -79,6 +95,9 @@ const ProSpace = () => {
           const data = await res.json();
           if (data && data.content && Object.keys(data.content).length > 0) {
             setPageData(data.content);
+            if (data.content.rates) {
+              setTempRates(data.content.rates);
+            }
           }
         }
       } catch (e) {
@@ -117,24 +136,59 @@ const ProSpace = () => {
     }
   };
 
+  const handleSaveRates = async (e) => {
+    if (e) e.preventDefault();
+    const currentFullContent = pageData || defaultContent;
+    const updatedFullContent = {
+      ...currentFullContent,
+      rates: tempRates
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/pages/pro-space`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: updatedFullContent })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPageData(data.content);
+        setIsRatesModalOpen(false);
+        setRatesSuccessMsg(true);
+        setTimeout(() => setRatesSuccessMsg(false), 4000);
+      }
+    } catch (e) {
+      console.error("Error saving rates:", e);
+    }
+  };
+
   // Dynamic pricing and logistics estimation
   useEffect(() => {
-    let pricePerSqm = 6;
+    const currentRates = pageData?.rates || defaultContent.rates;
+    const areaNum = Math.max(1, Number(formData.area) || 1);
+
+    let pricePerSqm = Number(currentRates.autre) || 6;
     let baseDays = 1;
     let baseTeam = 3;
 
     if (formData.spaceType === 'Usine') {
-      pricePerSqm = 9;
-      baseDays = Math.ceil(formData.area / 400);
-      baseTeam = Math.ceil(formData.area / 300) + 3;
+      pricePerSqm = Number(currentRates.usine) || 9;
+      baseDays = Math.ceil(areaNum / 400);
+      baseTeam = Math.ceil(areaNum / 300) + 3;
     } else if (formData.spaceType === 'Entrepôt') {
-      pricePerSqm = 5;
-      baseDays = Math.ceil(formData.area / 600);
-      baseTeam = Math.ceil(formData.area / 400) + 2;
+      pricePerSqm = Number(currentRates.entrepot) || 5;
+      baseDays = Math.ceil(areaNum / 600);
+      baseTeam = Math.ceil(areaNum / 400) + 2;
     } else if (formData.spaceType === 'Grand Domaine') {
-      pricePerSqm = 8;
-      baseDays = Math.ceil(formData.area / 200);
-      baseTeam = Math.ceil(formData.area / 150) + 2;
+      pricePerSqm = Number(currentRates.grandDomaine) || 8;
+      baseDays = Math.ceil(areaNum / 200);
+      baseTeam = Math.ceil(areaNum / 150) + 2;
+    } else if (formData.spaceType === 'Autre') {
+      pricePerSqm = Number(currentRates.autre) || 6;
+      baseDays = Math.ceil(areaNum / 300);
+      baseTeam = Math.ceil(areaNum / 250) + 2;
     }
 
     if (formData.hasHazardous) {
@@ -147,14 +201,15 @@ const ProSpace = () => {
       baseDays += 1;
     }
 
-    const calculatedPrice = formData.area * pricePerSqm;
+    const calculatedPrice = areaNum * pricePerSqm;
     setEstimate({
       minPrice: Math.round(calculatedPrice * 0.9),
       maxPrice: Math.round(calculatedPrice * 1.15),
       durationDays: Math.max(1, baseDays),
-      teamSize: Math.max(2, baseTeam)
+      teamSize: Math.max(2, baseTeam),
+      baseRate: pricePerSqm
     });
-  }, [formData.spaceType, formData.area, formData.hasHazardous, formData.accessConstraint]);
+  }, [formData.spaceType, formData.area, formData.hasHazardous, formData.accessConstraint, pageData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -255,6 +310,7 @@ const ProSpace = () => {
   const content = pageData || defaultContent;
   const header = content.header || defaultContent.header;
   const cardsSection = content.cardsSection || defaultContent.cardsSection;
+  const rates = content.rates || defaultContent.rates;
 
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-28 pb-16 relative overflow-hidden">
@@ -404,18 +460,46 @@ const ProSpace = () => {
             <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 space-y-8 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#00d26a]/5 rounded-full blur-2xl"></div>
               
-              <div className="border-b border-white/10 pb-6">
-                <h2 className="text-2xl md:text-3xl font-black">Planifiez votre grand débarras</h2>
-                <p className="text-gray-400 text-sm mt-1">Configurez les paramètres ci-dessous pour obtenir une estimation immédiate.</p>
+              <div className="border-b border-white/10 pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-black">Planifiez votre grand débarras</h2>
+                  <p className="text-gray-400 text-sm mt-1">Configurez les paramètres ci-dessous pour obtenir une estimation immédiate.</p>
+                </div>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempRates(pageData?.rates || defaultContent.rates);
+                      setIsRatesModalOpen(true);
+                    }}
+                    className="px-4 py-2 bg-[#00d26a]/15 hover:bg-[#00d26a] border border-[#00d26a]/40 hover:border-[#00d26a] text-[#00d26a] hover:text-white rounded-xl text-xs font-black transition-all shadow-md active:scale-95 flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer"
+                  >
+                    <span>⚙️</span> Modifier Tarifs au m²
+                  </button>
+                )}
               </div>
+
+              {ratesSuccessMsg && (
+                <div className="p-3 bg-[#00d26a]/20 border border-[#00d26a]/50 rounded-xl text-[#00d26a] text-xs font-bold flex items-center gap-2 animate-fadeIn">
+                  <span>✓</span> Grille tarifaire au m² mise à jour avec succès et appliquée immédiatement !
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* Space Type Selector */}
                 <div className="space-y-3">
-                  <label className="text-sm font-bold text-gray-300">Quel type d'espace souhaitez-vous débarrasser ?</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-bold text-gray-300">Quel type d'espace souhaitez-vous débarrasser ?</label>
+                    <span className="text-[11px] text-gray-400 font-medium">Tarifs configurables au m²</span>
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['Usine', 'Entrepôt', 'Grand Domaine', 'Autre'].map((type) => (
+                    {[
+                      { type: 'Usine', icon: '🏭', rate: rates.usine || 9 },
+                      { type: 'Entrepôt', icon: '📦', rate: rates.entrepot || 5 },
+                      { type: 'Grand Domaine', icon: '🏰', rate: rates.grandDomaine || 8 },
+                      { type: 'Autre', icon: '🏢', rate: rates.autre || 6 }
+                    ].map(({ type, icon, rate }) => (
                       <button
                         key={type}
                         type="button"
@@ -425,34 +509,75 @@ const ProSpace = () => {
                           ? 'bg-[#00d26a]/20 border-[#00d26a] text-white shadow-[0_0_15px_rgba(0,210,106,0.2)]' 
                           : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'}`}
                       >
-                        <span className="text-2xl">
-                          {type === 'Usine' ? '🏭' : type === 'Entrepôt' ? '📦' : type === 'Grand Domaine' ? '🏰' : '🏢'}
-                        </span>
+                        <span className="text-2xl">{icon}</span>
                         <span className="text-xs whitespace-nowrap">{type}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
+                          formData.spaceType === type
+                            ? 'bg-[#00d26a] text-[#1e0a2d]'
+                            : 'bg-white/10 text-gray-400'
+                        }`}>
+                          {rate} € / m²
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Area Slider */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
+                {/* Area Slider & Custom Manual Input */}
+                <div className="space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <label className="text-sm font-bold text-gray-300">Superficie estimée</label>
-                    <span className="px-3 py-1 bg-[#00d26a]/20 text-[#00d26a] rounded-lg font-black text-sm">{formData.area} m²</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 font-medium">Saisie personnalisée :</span>
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.area}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1);
+                            setFormData(prev => ({ ...prev, area: val }));
+                          }}
+                          className="w-28 text-right pr-9 pl-3 py-1.5 bg-[#00d26a]/15 border border-[#00d26a]/40 focus:border-[#00d26a] focus:ring-2 focus:ring-[#00d26a]/30 text-[#00d26a] rounded-xl font-black text-sm md:text-base outline-none transition-all"
+                          placeholder="ex: 150"
+                        />
+                        <span className="absolute right-3 text-[#00d26a] font-bold text-xs pointer-events-none">m²</span>
+                      </div>
+                    </div>
                   </div>
+
                   <input
                     type="range"
-                    min="100"
+                    min="1"
                     max="5000"
-                    step="50"
-                    value={formData.area}
-                    onChange={(e) => setFormData(prev => ({ ...prev, area: parseInt(e.target.value) }))}
+                    step="1"
+                    value={typeof formData.area === 'number' ? Math.min(5000, Math.max(1, formData.area)) : 1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, area: parseInt(e.target.value) || 1 }))}
                     className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00d26a]"
                   />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>100 m²</span>
-                    <span>2500 m²</span>
-                    <span>5000 m²</span>
+                  <div className="flex justify-between text-xs text-gray-400 font-medium">
+                    <span>1 m²</span>
+                    <span>2 500 m²</span>
+                    <span>5 000 m²</span>
+                  </div>
+
+                  {/* Quick preset buttons */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5">
+                    <span className="text-[11px] text-gray-400 font-medium">Raccourcis :</span>
+                    {[1, 50, 100, 500, 1000, 2500, 5000].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, area: val }))}
+                        className={`px-2.5 py-1 text-xs rounded-lg font-bold border transition-all ${
+                          formData.area === val
+                            ? 'bg-[#00d26a]/20 border-[#00d26a] text-[#00d26a] shadow-[0_0_10px_rgba(0,210,106,0.2)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {val === 1 ? '1 m²' : `${val.toLocaleString()} m²`}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -643,6 +768,9 @@ const ProSpace = () => {
                     {estimate.minPrice.toLocaleString()}€ - {estimate.maxPrice.toLocaleString()}€
                   </p>
                   <p className="text-[10px] text-gray-500 mt-1">Valorisation de matières recyclables déduite si applicable.</p>
+                  <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-semibold text-gray-300">
+                    <span>⚡</span> Tarif base : <span className="font-black text-[#00d26a]">{estimate.baseRate} € / m²</span> ({formData.spaceType})
+                  </div>
                 </div>
 
                 <div className="h-px bg-white/10"></div>
@@ -685,6 +813,125 @@ const ProSpace = () => {
         )}
 
       </div>
+
+      {/* Admin Rates Configuration Modal */}
+      {isRatesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#1e0a2d] border border-white/20 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-6 relative text-white">
+            <div className="flex justify-between items-start border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-xl font-black flex items-center gap-2">
+                  <span className="text-[#00d26a]">⚙️</span> Configuration des Tarifs au m²
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Définissez le prix de base par mètre carré pour chaque type d'espace.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRatesModalOpen(false)}
+                className="text-gray-400 hover:text-white text-xl p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRates} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Usine */}
+                <div className="space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <label className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                    <span className="text-lg">🏭</span> Usine
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={tempRates.usine}
+                      onChange={(e) => setTempRates(prev => ({ ...prev, usine: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
+                    />
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                  </div>
+                </div>
+
+                {/* Entrepôt */}
+                <div className="space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <label className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                    <span className="text-lg">📦</span> Entrepôt
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={tempRates.entrepot}
+                      onChange={(e) => setTempRates(prev => ({ ...prev, entrepot: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
+                    />
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                  </div>
+                </div>
+
+                {/* Grand Domaine */}
+                <div className="space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <label className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                    <span className="text-lg">🏰</span> Grand Domaine
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={tempRates.grandDomaine}
+                      onChange={(e) => setTempRates(prev => ({ ...prev, grandDomaine: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
+                    />
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                  </div>
+                </div>
+
+                {/* Autre */}
+                <div className="space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <label className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                    <span className="text-lg">🏢</span> Autre
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={tempRates.autre}
+                      onChange={(e) => setTempRates(prev => ({ ...prev, autre: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
+                    />
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsRatesModalOpen(false)}
+                  className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-gray-300 font-bold rounded-xl text-sm transition-all cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#00d26a] hover:bg-[#00b058] text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-[#00d26a]/25 flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <span>💾</span> Enregistrer les tarifs
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <PageEditModal
         isOpen={isEditOpen}

@@ -435,6 +435,7 @@ app.put("/api/pages/:pageId", async (req, res) => {
       pageContent = new PageContent({ pageId, content });
     } else {
       pageContent.content = content;
+      pageContent.markModified('content');
     }
     await pageContent.save();
     res.status(200).json(pageContent);

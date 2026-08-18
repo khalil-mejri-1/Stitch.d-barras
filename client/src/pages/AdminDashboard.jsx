@@ -68,6 +68,13 @@ const AdminDashboard = () => {
     diogeneRate: 90
   });
 
+  const [proRates, setProRates] = useState({
+    usine: 9,
+    entrepot: 5,
+    grandDomaine: 8,
+    autre: 6
+  });
+
   const markAllBookingsAsSeen = () => {
     setBookings(currentBookings => {
       const allIds = currentBookings.map(b => b.id);
@@ -115,11 +122,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchProRates = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/pages/pro-space`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.content && data.content.rates) {
+          setProRates(data.content.rates);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading pro rates:", err);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         await fetchBookings();
+        await fetchProRates();
         const usersRes = await fetch(`${API_BASE_URL}/api/users`);
         if (usersRes.ok) {
           const usersData = await usersRes.json();
@@ -900,7 +922,7 @@ const AdminDashboard = () => {
                 )
               }
             ].map(tab => {
-              const isLocked = tab.id !== 'bookings' && tab.id !== 'customers';
+              const isLocked = tab.id !== 'bookings' && tab.id !== 'customers' && tab.id !== 'pricing';
               const isBookingsTab = tab.id === 'bookings';
               return (
                 <button
@@ -1375,9 +1397,79 @@ const AdminDashboard = () => {
           {activeSubTab === 'pricing' && (
             <div className="space-y-6">
               <h2 className="text-3xl font-black font-h2">Services & Configuration des Tarifs</h2>
-              
+
+              {/* Pro Space Rates */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                <h4 className="text-lg font-bold font-h2 text-[#00d26a]">Modifier le prix par m³ (mètre cube)</h4>
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <h4 className="text-lg font-bold font-h2 text-[#00d26a]">🏭 Tarifs Espace Pro — Prix au m²</h4>
+                    <p className="text-xs text-gray-400 mt-1">Ces tarifs sont appliqués en temps réel sur la page Espace Pro pour le calcul des estimations clients.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {[
+                    { key: 'usine', label: 'Usine', icon: '🏭', desc: 'Sites industriels, usines de production' },
+                    { key: 'entrepot', label: 'Entrepôt', icon: '📦', desc: 'Entrepôts logistiques, dépôts de stockage' },
+                    { key: 'grandDomaine', label: 'Grand Domaine', icon: '🏰', desc: 'Châteaux, manoirs, grandes villas' },
+                    { key: 'autre', label: 'Autre', icon: '🏢', desc: 'Locaux professionnels divers' }
+                  ].map(({ key, label, icon, desc }) => (
+                    <div key={key} className="bg-white/5 border border-white/10 hover:border-[#00d26a]/30 rounded-2xl p-5 space-y-3 transition-all">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{icon}</span>
+                        <div>
+                          <p className="font-bold text-sm">{label}</p>
+                          <p className="text-xs text-gray-400">{desc}</p>
+                        </div>
+                      </div>
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          min="1"
+                          value={proRates[key] || ''}
+                          onChange={(e) => setProRates(prev => ({ ...prev, [key]: Math.max(1, parseInt(e.target.value) || 1) }))}
+                          className="w-full p-3 pr-16 bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl text-white font-black text-lg outline-none transition-all"
+                        />
+                        <span className="absolute right-4 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={async () => {
+                    try {
+                      const pageRes = await fetch(`${API_BASE_URL}/api/pages/pro-space`);
+                      let currentContent = {};
+                      if (pageRes.ok) {
+                        const pageData = await pageRes.json();
+                        currentContent = pageData.content || {};
+                      }
+                      const updatedContent = { ...currentContent, rates: proRates };
+                      const saveRes = await fetch(`${API_BASE_URL}/api/pages/pro-space`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: updatedContent })
+                      });
+                      if (saveRes.ok) {
+                        setModal({ type: 'success', title: '✅ Tarifs Espace Pro mis à jour', message: `Grille tarifaire Espace Pro enregistrée !\n\n🏭 Usine: ${proRates.usine} €/m²\n📦 Entrepôt: ${proRates.entrepot} €/m²\n🏰 Grand Domaine: ${proRates.grandDomaine} €/m²\n🏢 Autre: ${proRates.autre} €/m²\n\nLes clients verront les nouveaux tarifs immédiatement.` });
+                      } else {
+                        setModal({ type: 'error', title: 'Erreur', message: 'Impossible de sauvegarder les tarifs. Veuillez réessayer.' });
+                      }
+                    } catch (err) {
+                      console.error("Error saving pro rates:", err);
+                      setModal({ type: 'error', title: 'Erreur réseau', message: 'Connexion au serveur impossible.' });
+                    }
+                  }}
+                  className="px-8 py-3 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-xl transition-all cursor-pointer shadow-lg shadow-[#00d26a]/20 active:scale-95 flex items-center gap-2"
+                >
+                  <span>💾</span> Enregistrer les tarifs Espace Pro
+                </button>
+              </div>
+
+              {/* General pricing (existing) */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+                <h4 className="text-lg font-bold font-h2 text-gray-300">🏠 Tarifs Particuliers — Prix par m³</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
@@ -1419,10 +1511,10 @@ const AdminDashboard = () => {
                 </div>
 
                 <button 
-                  onClick={() => setModal({ type: 'success', title: 'Tarifs mis à jour', message: 'Grille tarifaire mise à jour avec succès !' })}
-                  className="px-8 py-3 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-xl transition-all cursor-pointer"
+                  onClick={() => setModal({ type: 'success', title: 'Tarifs mis à jour', message: 'Grille tarifaire particuliers mise à jour avec succès !' })}
+                  className="px-8 py-3 bg-white/10 hover:bg-white/15 text-white font-black rounded-xl transition-all cursor-pointer"
                 >
-                  Enregistrer la grille tarifaire
+                  Enregistrer tarifs particuliers
                 </button>
               </div>
             </div>
