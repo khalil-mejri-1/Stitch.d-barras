@@ -32,7 +32,7 @@ const Blog = () => {
           image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=800"
         },
         {
-          title: "Success Story : Débarras d'un entrepôt de 800m² à Lyon",
+          title: "Success Story : Débarras d'un entrepôt de 800m³ à Lyon",
           category: "Succès",
           date: "02 Mai 2026",
           desc: "Retour sur un chantier d'envergure. Comment notre équipe a évacué et recyclé 45 tonnes de matériel industriel en seulement 3 jours.",

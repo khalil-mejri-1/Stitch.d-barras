@@ -27,14 +27,14 @@ const Prices = () => {
       packages: [
         {
           title: "Formule Studio / Cave",
-          size: "Moins de 25 m²",
+          size: "Moins de 25 m³",
           volume: "Jusqu'à 8 m³",
           price: "390 €",
           featuresList: "1 à 2 intervenants, Déplacement inclus, Tri sélectif & Recyclage, Nettoyage balayé rapide, Donations associations"
         },
         {
           title: "Formule Appartement T2 / T3",
-          size: "De 25 à 65 m²",
+          size: "De 25 à 65 m³",
           volume: "Jusqu'à 20 m³",
           price: "850 €",
           featuresList: "2 à 3 intervenants, 1 camionnette de 20m³, Gestion des objets lourds, Nettoyage balayé complet, Donations associations, Garantie protection parties communes",
@@ -42,7 +42,7 @@ const Prices = () => {
         },
         {
           title: "Formule Maison / Pavillon",
-          size: "Plus de 70 m²",
+          size: "Plus de 70 m³",
           volume: "Jusqu'à 45 m³",
           price: "1 790 €",
           featuresList: "3 à 4 intervenants, 2 camions ou rotations, Vidage grenier & garage, Nettoyage balayé complet, Dons & Recyclage de métaux, Assurance sinistre incluse"

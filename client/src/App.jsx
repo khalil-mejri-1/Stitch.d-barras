@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Stats from './components/Stats';
@@ -10,6 +10,7 @@ import B2B from './components/B2B';
 import Auth from './components/Auth';
 import PublishProject from './components/PublishProject';
 import EditModal from './components/EditModal';
+import WhatsAppButton from './components/WhatsAppButton';
 import { API_BASE_URL } from './config';
 
 // Import New Pages
@@ -34,7 +35,10 @@ const Home = ({ isAdmin, homepageData, onEditClick }) => {
     button1Sub: "Maison, appartement, cave, bureaux...",
     button2Title: "Vous êtes un Professionnel ?",
     button2Sub: "Usines, Entrepôts, Domaines...",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+    phone: "01 88 99 00 11",
+    phoneLabel: "Devis immédiat par téléphone :",
+    quoteTitle: "Recevez votre devis gratuit"
   };
 
   const statsData = homepageData?.stats || {
@@ -111,20 +115,14 @@ const Home = ({ isAdmin, homepageData, onEditClick }) => {
       </div>
       <footer className="bg-gray-900 text-gray-400 py-12 border-t border-white/5 reveal-hidden">
         <div className="max-w-[1280px] mx-auto px-gutter text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(0,210,106,0.1)] relative overflow-hidden">
-              <svg className="w-5 h-5" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M30 20 C45 5, 55 5, 70 20 C85 35, 75 50, 50 50 C25 50, 15 65, 30 80 C45 95, 55 95, 70 80" stroke="url(#footer-stitch-grad)" strokeWidth="12" strokeLinecap="round" fill="none" />
-                <defs>
-                  <linearGradient id="footer-stitch-grad" x1="15" y1="15" x2="85" y2="85" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#00d26a" />
-                    <stop offset="50%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#3b82f6" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-white tracking-tight">Stitch<span className="text-[#00d26a]">.</span>débarras</span>
+          <div className="flex items-center justify-center mb-6">
+            <Link to="/" className="inline-block group">
+              <img 
+                src="/logo.png" 
+                alt="Stitch Débarras" 
+                className="h-16 md:h-20 w-auto object-contain mx-auto transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]" 
+              />
+            </Link>
           </div>
           <p>© 2026 Stitch Débarras - Tous droits réservés. Solution d'économie circulaire et recyclage.</p>
         </div>
@@ -248,7 +246,7 @@ function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#1e0a2d]">
-      <Header />
+      <Header phone={homepageData?.hero?.phone} />
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home isAdmin={isAdmin} homepageData={homepageData} onEditClick={handleEditClick} />} />
@@ -269,6 +267,9 @@ function App() {
           <Route path="/pro-space" element={<ProSpace />} />
         </Routes>
       </main>
+
+      {/* Floating Circular WhatsApp Button Fixed Across All Pages */}
+      <WhatsAppButton phone={homepageData?.hero?.whatsappPhone || homepageData?.hero?.phone} />
 
       <EditModal
         isOpen={isEditModalOpen}

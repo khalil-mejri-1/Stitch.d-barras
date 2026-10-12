@@ -62,7 +62,11 @@ const homepageSchema = new mongoose.Schema({
     button1Sub: { type: String, default: "Maison, appartement, cave, bureaux..." },
     button2Title: { type: String, default: "Vous êtes un Professionnel ?" },
     button2Sub: { type: String, default: "Usines, Entrepôts, Domaines..." },
-    image: { type: String, default: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800" }
+    image: { type: String, default: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800" },
+    phone: { type: String, default: "01 88 99 00 11" },
+    whatsappPhone: { type: String, default: "0630246109" },
+    phoneLabel: { type: String, default: "Devis immédiat par téléphone :" },
+    quoteTitle: { type: String, default: "Recevez votre devis gratuit" }
   },
   stats: {
     items: [
@@ -340,7 +344,11 @@ app.get("/api/homepage", async (req, res) => {
           button1Sub: "Maison, appartement, cave, bureaux...",
           button2Title: "Vous êtes un Professionnel ?",
           button2Sub: "Usines, Entrepôts, Domaines...",
-          image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800"
+          image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+          phone: "01 88 99 00 11",
+          whatsappPhone: "0630246109",
+          phoneLabel: "Devis immédiat par téléphone :",
+          quoteTitle: "Recevez votre devis gratuit"
         },
         stats: {
           items: [

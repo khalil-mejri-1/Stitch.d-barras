@@ -88,7 +88,6 @@ const Booking = () => {
   const services = [
     "Débarras de Maisons & Villas",
     "Débarras d'Appartements & Caves",
-    "Débarras de Bureaux & Locaux",
     "Débarras de Jardins & Espaces Extérieurs",
     "Nettoyage Spécialisé & Diogène"
   ];
@@ -98,10 +97,10 @@ const Booking = () => {
   return (
     <div className="min-h-screen bg-[#1e0a2d] text-white pt-32 pb-20">
       <div className="max-w-[1280px] mx-auto px-gutter grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-        
+
         {/* Reservation Form (Steps 1 & 2) */}
         <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 glass space-y-8">
-          
+
           {/* Stepper Indicators */}
           <div className="flex items-center justify-between border-b border-white/10 pb-6">
             <div className="flex items-center gap-3">
@@ -139,7 +138,7 @@ const Booking = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
-              
+
               {/* Step 1: Prestation Details */}
               {step === 1 && (
                 <div className="space-y-6">
@@ -161,7 +160,7 @@ const Booking = () => {
                       <label className="block text-sm font-bold uppercase tracking-wider text-gray-400">Volume estimé : {formData.volume} m³</label>
                       <span className="text-xs text-[#00d26a] bg-[#00d26a]/15 px-3 py-1 rounded-full font-bold">1 m³ ≈ 1 lave-linge</span>
                     </div>
-                    <input 
+                    <input
                       type="range"
                       min="1"
                       max="100"
@@ -179,9 +178,9 @@ const Booking = () => {
                   <div className="space-y-4 pt-4 border-t border-white/5">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400">Options supplémentaires</h4>
                     <label className="flex items-center gap-3 cursor-pointer p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all">
-                      <input 
-                        type="checkbox" 
-                        checked={formData.cleaningExtra} 
+                      <input
+                        type="checkbox"
+                        checked={formData.cleaningExtra}
                         onChange={(e) => setFormData(prev => ({ ...prev, cleaningExtra: e.target.checked }))}
                         className="w-5 h-5 accent-[#00d26a]"
                       />
@@ -192,9 +191,9 @@ const Booking = () => {
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all">
-                      <input 
-                        type="checkbox" 
-                        checked={formData.donationSorting} 
+                      <input
+                        type="checkbox"
+                        checked={formData.donationSorting}
                         onChange={(e) => setFormData(prev => ({ ...prev, donationSorting: e.target.checked }))}
                         className="w-5 h-5 accent-[#00d26a]"
                       />
@@ -206,8 +205,8 @@ const Booking = () => {
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleNext}
                       className="px-8 py-4 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-2xl flex items-center gap-2"
                     >
@@ -224,7 +223,7 @@ const Booking = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-bold uppercase tracking-wider text-gray-400">Date d'intervention</label>
-                      <input 
+                      <input
                         type="date"
                         required
                         value={formData.date}
@@ -253,8 +252,8 @@ const Booking = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase text-gray-400">Nom Complet</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={formData.name}
                           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -264,8 +263,8 @@ const Booking = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase text-gray-400">Adresse Email</label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           required
                           value={formData.email}
                           onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -278,8 +277,8 @@ const Booking = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase text-gray-400">Téléphone</label>
-                        <input 
-                          type="tel" 
+                        <input
+                          type="tel"
                           required
                           value={formData.phone}
                           onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
@@ -289,8 +288,8 @@ const Booking = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase text-gray-400">Adresse d'intervention</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={formData.address}
                           onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
@@ -302,22 +301,21 @@ const Booking = () => {
                   </div>
 
                   <div className="flex justify-between pt-4">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handlePrev}
                       className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl"
                     >
                       Retour
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handleNext}
                       disabled={!isStep2Valid}
-                      className={`px-8 py-4 font-black rounded-2xl flex items-center gap-2 transition-all ${
-                        isStep2Valid 
-                          ? 'bg-[#00d26a] hover:bg-[#00b058] text-white cursor-pointer' 
+                      className={`px-8 py-4 font-black rounded-2xl flex items-center gap-2 transition-all ${isStep2Valid
+                          ? 'bg-[#00d26a] hover:bg-[#00b058] text-white cursor-pointer'
                           : 'bg-white/10 text-gray-500 cursor-not-allowed opacity-50'
-                      }`}
+                        }`}
                     >
                       Continuer
                       <span>→</span>
@@ -368,14 +366,14 @@ const Booking = () => {
                   )}
 
                   <div className="flex justify-between pt-4">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handlePrev}
                       className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl"
                     >
                       Retour
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       className="px-10 py-4 bg-[#00d26a] hover:bg-[#00b058] text-white font-black rounded-2xl shadow-xl shadow-[#00d26a]/20"
                     >
@@ -391,7 +389,7 @@ const Booking = () => {
         {/* Pricing Summary Sidepanel */}
         <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 glass space-y-6">
           <h3 className="text-2xl font-black font-h2 border-b border-white/10 pb-4">Résumé de l'estimation</h3>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Service</span>
@@ -438,19 +436,18 @@ const Booking = () => {
           <div className="bg-gradient-to-br from-[#1e0a2d] to-[#3a1555] border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] text-center relative overflow-hidden glass">
             {/* Glowing background blob inside modal */}
             <div className={`absolute -top-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-20 ${modal.type === 'error' ? 'bg-red-500' : 'bg-[#00d26a]'}`}></div>
-            
+
             {/* Icon */}
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold ${
-              modal.type === 'error' 
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold ${modal.type === 'error'
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                 : 'bg-[#00d26a]/10 text-[#00d26a] border border-[#00d26a]/20'
-            }`}>
+              }`}>
               {modal.type === 'error' ? '✕' : modal.type === 'success' ? '✓' : 'ℹ'}
             </div>
 
             <h3 className="text-xl font-black font-h2 text-white mb-2">{modal.title}</h3>
             <p className="text-gray-300 text-sm mb-6 leading-relaxed">{modal.message}</p>
-            
+
             <button
               onClick={() => setModal(null)}
               className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 text-white font-bold rounded-xl transition-all active:scale-[0.98] cursor-pointer"

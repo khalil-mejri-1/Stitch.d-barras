@@ -139,6 +139,50 @@ const EditModal = ({ isOpen, onClose, sectionName, initialData, onSave }) => {
                   onChange={(e) => handleInputChange('hero.subtitle', e.target.value)}
                 />
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-[#00d26a] mb-1">Titre Devis</label>
+                  <input
+                    type="text"
+                    className="w-full bg-[#2a133d] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d26a]"
+                    placeholder="Recevez votre devis gratuit"
+                    value={formData.hero?.quoteTitle || ''}
+                    onChange={(e) => handleInputChange('hero.quoteTitle', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#00d26a] mb-1">Numéro de Téléphone (Sous le titre)</label>
+                  <input
+                    type="text"
+                    className="w-full bg-[#2a133d] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d26a]"
+                    placeholder="01 88 99 00 11"
+                    value={formData.hero?.phone || ''}
+                    onChange={(e) => handleInputChange('hero.phone', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#00d26a] mb-1">Libellé d'appel</label>
+                  <input
+                    type="text"
+                    className="w-full bg-[#2a133d] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d26a]"
+                    placeholder="Ou appelez-nous directement :"
+                    value={formData.hero?.phoneLabel || ''}
+                    onChange={(e) => handleInputChange('hero.phoneLabel', e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-[#25D366] mb-1 flex items-center gap-1.5">
+                    <span>💬</span> Numéro WhatsApp (Bouton flottant sur toutes les pages)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-[#2a133d] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#25D366]"
+                    placeholder="ex: 06 30 24 61 09 (Laisser vide pour utiliser le numéro principal)"
+                    value={formData.hero?.whatsappPhone || ''}
+                    onChange={(e) => handleInputChange('hero.whatsappPhone', e.target.value)}
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-300 mb-1">Bouton Particulier - Titre</label>
