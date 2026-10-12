@@ -75,6 +75,59 @@ const AdminDashboard = () => {
     autre: 6
   });
 
+  const [heroSettings, setHeroSettings] = useState({
+    phone: "01 88 99 00 11",
+    whatsappPhone: "0630246109",
+    phoneLabel: "Devis immédiat par téléphone :",
+    quoteTitle: "Recevez votre devis gratuit",
+    badge: "Service Professionnel de Débarras en France",
+    title: "Libérez de l'espace sans effort avec Stitch",
+    subtitle: "Maison, appartement, cave ou bureau: nous trions, recyclons et nettoyons après débarras de manière écoresponsable."
+  });
+  const [isSavingHero, setIsSavingHero] = useState(false);
+
+  const handleSaveHeroSettings = async (e) => {
+    e?.preventDefault();
+    setIsSavingHero(true);
+    try {
+      const getRes = await fetch(`${API_BASE_URL}/api/homepage`);
+      const existingData = getRes.ok ? await getRes.json() : {};
+
+      const payload = {
+        ...existingData,
+        hero: {
+          ...(existingData.hero || {}),
+          ...heroSettings
+        }
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/homepage`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setModal({
+          type: 'success',
+          title: 'Modifications enregistrées !',
+          message: 'Le numéro de téléphone et les informations du Hero ont été mis à jour avec succès sur le site.'
+        });
+      } else {
+        throw new Error('Erreur lors de la sauvegarde');
+      }
+    } catch (err) {
+      console.error(err);
+      setModal({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Impossible de sauvegarder les modifications. Veuillez réessayer.'
+      });
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
+
   const markAllBookingsAsSeen = () => {
     setBookings(currentBookings => {
       const allIds = currentBookings.map(b => b.id);
@@ -146,6 +199,17 @@ const AdminDashboard = () => {
         if (usersRes.ok) {
           const usersData = await usersRes.json();
           setRegisteredUsers(usersData);
+        }
+        try {
+          const homeRes = await fetch(`${API_BASE_URL}/api/homepage`);
+          if (homeRes.ok) {
+            const homeData = await homeRes.json();
+            if (homeData && homeData.hero) {
+              setHeroSettings(prev => ({ ...prev, ...homeData.hero }));
+            }
+          }
+        } catch (e) {
+          console.error("Error loading homepage in admin:", e);
         }
       } catch (err) {
         console.error("Error loading admin data:", err);
@@ -367,8 +431,8 @@ const AdminDashboard = () => {
       <body>
         <div class="header">
           <div>
-            <div class="logo">Stitch<span>.</span>débarras</div>
-            <p style="margin: 5px 0 0 0; color: #666;">Services d'Économie Circulaire</p>
+            <img src="/logo.png" style="height: 48px; object-fit: contain; margin-bottom: 6px;" alt="Stitch Débarras" />
+            <p style="margin: 0; color: #666; font-size: 13px;">Services d'Économie Circulaire & Recyclage</p>
           </div>
           <div class="devis-info">
             <h1>DEVIS</h1>
@@ -618,8 +682,8 @@ const AdminDashboard = () => {
       <body>
         <div class="header">
           <div>
-            <div class="logo">Stitch<span>.</span>débarras</div>
-            <p style="margin: 5px 0 0 0; color: #666;">Services d'Économie Circulaire</p>
+            <img src="/logo.png" style="height: 48px; object-fit: contain; margin-bottom: 6px;" alt="Stitch Débarras" />
+            <p style="margin: 0; color: #666; font-size: 13px;">Services d'Économie Circulaire & Recyclage</p>
           </div>
           <div class="facture-info">
             <h1>FACTURE</h1>
@@ -920,9 +984,18 @@ const AdminDashboard = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 18.375v-5.25zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-9.75zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                   </svg>
                 )
+              },
+              { 
+                id: 'site_settings', 
+                name: 'Contact & Numéro Hero', 
+                icon: (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                )
               }
             ].map(tab => {
-              const isLocked = tab.id !== 'bookings' && tab.id !== 'customers' && tab.id !== 'pricing';
+              const isLocked = tab.id !== 'bookings' && tab.id !== 'customers' && tab.id !== 'pricing' && tab.id !== 'site_settings';
               const isBookingsTab = tab.id === 'bookings';
               return (
                 <button
@@ -1402,7 +1475,7 @@ const AdminDashboard = () => {
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div>
-                    <h4 className="text-lg font-bold font-h2 text-[#00d26a]">🏭 Tarifs Espace Pro — Prix au m²</h4>
+                    <h4 className="text-lg font-bold font-h2 text-[#00d26a]">🏭 Tarifs Espace Pro — Prix au m³</h4>
                     <p className="text-xs text-gray-400 mt-1">Ces tarifs sont appliqués en temps réel sur la page Espace Pro pour le calcul des estimations clients.</p>
                   </div>
                 </div>
@@ -1430,7 +1503,7 @@ const AdminDashboard = () => {
                           onChange={(e) => setProRates(prev => ({ ...prev, [key]: Math.max(1, parseInt(e.target.value) || 1) }))}
                           className="w-full p-3 pr-16 bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl text-white font-black text-lg outline-none transition-all"
                         />
-                        <span className="absolute right-4 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                        <span className="absolute right-4 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
                       </div>
                     </div>
                   ))}
@@ -1452,7 +1525,7 @@ const AdminDashboard = () => {
                         body: JSON.stringify({ content: updatedContent })
                       });
                       if (saveRes.ok) {
-                        setModal({ type: 'success', title: '✅ Tarifs Espace Pro mis à jour', message: `Grille tarifaire Espace Pro enregistrée !\n\n🏭 Usine: ${proRates.usine} €/m²\n📦 Entrepôt: ${proRates.entrepot} €/m²\n🏰 Grand Domaine: ${proRates.grandDomaine} €/m²\n🏢 Autre: ${proRates.autre} €/m²\n\nLes clients verront les nouveaux tarifs immédiatement.` });
+                        setModal({ type: 'success', title: '✅ Tarifs Espace Pro mis à jour', message: `Grille tarifaire Espace Pro enregistrée !\n\n🏭 Usine: ${proRates.usine} €/m³\n📦 Entrepôt: ${proRates.entrepot} €/m³\n🏰 Grand Domaine: ${proRates.grandDomaine} €/m³\n🏢 Autre: ${proRates.autre} €/m³\n\nLes clients verront les nouveaux tarifs immédiatement.` });
                       } else {
                         setModal({ type: 'error', title: 'Erreur', message: 'Impossible de sauvegarder les tarifs. Veuillez réessayer.' });
                       }
@@ -1586,6 +1659,207 @@ const AdminDashboard = () => {
                 </div>
                 <p className="text-xs text-gray-400 text-center font-semibold">Simulation du CA Stitch 1er semestre 2026. Survolez les barres pour afficher le total.</p>
               </div>
+            </div>
+          )}
+
+          {/* Subtab 6: Site & Hero Settings */}
+          {activeSubTab === 'site_settings' && (
+            <div className="space-y-8 animate-reveal">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
+                <div>
+                  <h2 className="text-3xl font-black font-h2 flex items-center gap-2">
+                    <span className="text-[#00d26a]">📞</span> Configuration Site & Contact
+                  </h2>
+                  <p className="text-sm text-gray-400">
+                    Modifiez le numéro de téléphone affiché sous le titre dans la section Hero et les textes principaux.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveHeroSettings}
+                  disabled={isSavingHero}
+                  className="px-6 py-3 bg-[#00d26a] hover:bg-[#00b95c] text-white font-bold rounded-2xl shadow-[0_0_20px_rgba(0,210,106,0.35)] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingHero ? (
+                    <>
+                      <span className="animate-spin">⏳</span> Enregistrement...
+                    </>
+                  ) : (
+                    <>
+                      <span>💾</span> Enregistrer les modifications
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="bg-[#1e0a2d]/80 border border-[#00d26a]/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-[#00d26a]/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#00d26a] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#00d26a] animate-ping"></span>
+                    Aperçu en Direct sur le Site
+                  </span>
+                  <span className="text-xs text-gray-400">Section Hero</span>
+                </div>
+
+                <div className="space-y-4 max-w-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d26a]/25 to-[#00d26a]/5 border border-[#00d26a]/40 flex items-center justify-center text-[#00d26a] shadow-[0_0_20px_rgba(0,210,106,0.35)] shrink-0">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h3 className="text-2xl font-h2 font-black tracking-tight text-white flex items-center gap-1.5">
+                        <span>{heroSettings.quoteTitle ? heroSettings.quoteTitle.replace(/devis.*/i, '') : "Recevez votre "}</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00d26a] via-[#34ee8a] to-[#00d26a]">
+                          {heroSettings.quoteTitle && /devis/i.test(heroSettings.quoteTitle) ? heroSettings.quoteTitle.match(/devis.*/i)[0] : "devis gratuit"}
+                        </span>
+                      </h3>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#00d26a]/15 text-[#00d26a] border border-[#00d26a]/30">
+                        100% Gratuit
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="inline-flex items-center gap-3.5 px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-lg">
+                    <div className="w-8 h-8 rounded-lg bg-[#00d26a] text-white flex items-center justify-center shadow-[0_0_12px_rgba(0,210,106,0.4)]">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-[11px] font-bold text-gray-300">
+                        {heroSettings.phoneLabel || "Ou appelez-nous directement :"}
+                      </span>
+                      <span className="text-base font-black text-[#00d26a] tracking-wider">
+                        {heroSettings.phone || "01 88 99 00 11"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Settings */}
+              <form onSubmit={handleSaveHeroSettings} className="space-y-6">
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6">
+                  <h3 className="text-xl font-black font-h2 text-white flex items-center gap-2">
+                    <span className="text-[#00d26a]">🎯</span> Paramètres du Téléphone & Devis (Hero)
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-300 mb-2">
+                        Numéro de Téléphone (Sous le titre) <span className="text-[#00d26a]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={heroSettings.phone}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="ex: 01 88 99 00 11"
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white font-bold text-base focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                      <p className="text-xs text-gray-400 mt-1.5">
+                        Le numéro sera cliquable directement pour appeler depuis mobile et desktop.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-300 mb-2">
+                        Libellé au-dessus du numéro
+                      </label>
+                      <input
+                        type="text"
+                        value={heroSettings.phoneLabel}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, phoneLabel: e.target.value }))}
+                        placeholder="ex: Ou appelez-nous directement :"
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-300 mb-2">
+                        Titre du bloc Devis
+                      </label>
+                      <input
+                        type="text"
+                        value={heroSettings.quoteTitle}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, quoteTitle: e.target.value }))}
+                        placeholder="ex: Recevez votre devis gratuit"
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-[#25D366] mb-2 flex items-center gap-1.5">
+                        <span>💬</span> Numéro WhatsApp (Bouton flottant sur toutes les pages)
+                      </label>
+                      <input
+                        type="text"
+                        value={heroSettings.whatsappPhone || ''}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, whatsappPhone: e.target.value }))}
+                        placeholder="ex: 06 30 24 61 09 (Si vide, le numéro de téléphone ci-dessus sera utilisé)"
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white font-bold text-base focus:outline-none focus:border-[#25D366] transition-all"
+                      />
+                      <p className="text-xs text-gray-400 mt-1.5">
+                        Ce numéro sera directement ouvert dans WhatsApp pour les visiteurs lorsqu'ils cliquent sur le bouton flottant circulaire.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Hero Content */}
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6">
+                  <h3 className="text-xl font-black font-h2 text-white flex items-center gap-2">
+                    <span className="text-[#00d26a]">📝</span> Textes Principaux du Hero (Optionnels)
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-300 mb-2">Badge supérieur</label>
+                      <input
+                        type="text"
+                        value={heroSettings.badge}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, badge: e.target.value }))}
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-300 mb-2">Titre Principal (H1)</label>
+                      <input
+                        type="text"
+                        value={heroSettings.title}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-300 mb-2">Sous-titre / Description</label>
+                      <textarea
+                        rows="2"
+                        value={heroSettings.subtitle}
+                        onChange={(e) => setHeroSettings(prev => ({ ...prev, subtitle: e.target.value }))}
+                        className="w-full bg-[#1e0a2d] border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#00d26a] transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSavingHero}
+                    className="px-8 py-4 bg-[#00d26a] hover:bg-[#00b95c] text-white font-black text-base rounded-2xl shadow-[0_0_25px_rgba(0,210,106,0.4)] transition-all flex items-center gap-3 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingHero ? 'Enregistrement...' : 'Enregistrer toutes les modifications'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

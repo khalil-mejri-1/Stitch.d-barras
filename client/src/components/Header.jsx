@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ phone }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
   const location = useLocation();
+  const displayPhone = phone || "01 88 99 00 11";
 
   // Close menu when route changes
   useEffect(() => {
@@ -107,31 +108,41 @@ const Header = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-[60] backdrop-blur-md bg-[#1e0a2d]/90 border-b border-white/10 text-white">
-        <div className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group cursor-pointer relative z-[70]">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 border border-white/10 shadow-[0_0_20px_rgba(0,210,106,0.15)] relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00d26a]/10 to-[#10b981]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <svg className="w-7 h-7 relative z-10" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M30 20 C45 5, 55 5, 70 20 C85 35, 75 50, 50 50 C25 50, 15 65, 30 80 C45 95, 55 95, 70 80" stroke="url(#header-stitch-grad)" strokeWidth="12" strokeLinecap="round" fill="none" />
-                <defs>
-                  <linearGradient id="header-stitch-grad" x1="15" y1="15" x2="85" y2="85" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#00d26a" />
-                    <stop offset="50%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#3b82f6" />
-                  </linearGradient>
-                </defs>
-              </svg>
+        <div className="w-full px-4 sm:px-6 lg:px-8 2xl:px-12 py-3 sm:py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 relative z-[70] shrink-0">
+            <Link to="/" className="flex items-center group cursor-pointer shrink-0">
+              <img 
+                src="/logo.png" 
+                alt="Stitch Débarras" 
+                className="h-11 sm:h-13 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]" 
+              />
+            </Link>
+            <div className="flex flex-col text-left justify-center">
+              <Link to="/" className="group cursor-pointer">
+                <span className="text-lg sm:text-xl md:text-2xl font-black font-h1 tracking-tight text-white group-hover:text-[#00d26a] transition-colors leading-tight block">
+                  Stitch<span className="text-[#00d26a]">.</span>débarras
+                </span>
+              </Link>
+              <a 
+                href={`tel:${displayPhone.replace(/\s+/g, '')}`}
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-[#00d26a] hover:text-[#34ee8a] transition-colors group/tel mt-0.5"
+                title="Appelez-nous directement"
+              >
+                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#00d26a] group-hover/tel:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                <span className="tracking-wider">{displayPhone}</span>
+              </a>
             </div>
-            <span className="text-2xl font-bold font-h1 tracking-tight">Stitch<span className="text-[#00d26a]">.</span>débarras</span>
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden xl:flex items-center gap-1.5 xl:gap-2.5 2xl:gap-5">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-button text-sm flex items-center gap-2 relative group py-2 px-3.5 rounded-xl transition-all duration-300 ${
+                className={`font-button text-xs 2xl:text-sm whitespace-nowrap flex items-center gap-1.5 relative group py-2 px-2.5 2xl:px-3.5 rounded-xl transition-all duration-300 ${
                   location.pathname === link.path 
                     ? 'text-[#00d26a] bg-white/5' 
                     : link.path === '/pro-space'
@@ -150,14 +161,14 @@ const Header = () => {
                 </span>
                 <span className="relative z-10 font-bold">{link.title}</span>
                 {link.path !== '/pro-space' && (
-                  <span className={`absolute bottom-0 left-3.5 right-3.5 h-0.5 bg-[#00d26a] transition-all duration-300 ${location.pathname === link.path ? 'w-[calc(100%-28px)]' : 'w-0 group-hover:w-[calc(100%-28px)]'}`}></span>
+                  <span className={`absolute bottom-0 left-2 right-2 h-0.5 bg-[#00d26a] transition-all duration-300 ${location.pathname === link.path ? 'w-[calc(100%-16px)]' : 'w-0 group-hover:w-[calc(100%-16px)]'}`}></span>
                 )}
               </Link>
             ))}
           </nav>
 
           {/* CTA & Account Buttons */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-4 2xl:gap-6 shrink-0">
             {!isLoggedIn ? (
               <Link
                 to="/auth"
@@ -222,7 +233,28 @@ const Header = () => {
           <div className="absolute bottom-20 -left-20 w-64 h-64 bg-[#5d3077] rounded-full blur-[100px]"></div>
         </div>
 
-        <div className="relative h-full flex flex-col p-8 pt-24 overflow-y-auto no-scrollbar">
+        <div className="relative h-full flex flex-col p-8 pt-20 overflow-y-auto no-scrollbar">
+          <div className="mb-6 flex flex-col items-center justify-center border-b border-white/10 pb-6 gap-2">
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 group">
+              <img 
+                src="/logo.png" 
+                alt="Stitch Débarras" 
+                className="h-14 w-auto object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform" 
+              />
+              <span className="text-xl font-black font-h1 tracking-tight text-white">
+                Stitch<span className="text-[#00d26a]">.</span>débarras
+              </span>
+            </Link>
+            <a
+              href={`tel:${displayPhone.replace(/\s+/g, '')}`}
+              className="inline-flex items-center gap-1.5 text-xs font-black text-[#00d26a] hover:underline mt-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+              <span className="tracking-wider">{displayPhone}</span>
+            </a>
+          </div>
           <div className="space-y-4">
             {navLinks.map((link, idx) => (
               <Link

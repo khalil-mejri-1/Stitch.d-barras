@@ -15,12 +15,11 @@ const Contact = () => {
       subtitle: "Notre service client est à votre disposition par téléphone ou par message pour planifier ou modifier un débarras."
     },
     detailsSection: {
-      address: "14 Rue de la Revalorisation, 75011 Paris, France",
-      phone: "01 88 99 00 11",
+      address: "3 rue de la pépinière 93240 Stains",
+      phone: "0630246109",
       email: "contact@stitch-debarras.fr",
-      hoursWeek: "08:00 - 19:30",
-      hoursSat: "09:00 - 18:00",
-      hoursSun: "Fermé (Urgences par email)"
+      hoursLabel: "Lundi - Dimanche (7j/7) :",
+      hoursWeek: "07:00 - 20:30"
     }
   };
 
@@ -166,14 +165,17 @@ const Contact = () => {
               </div>
 
               <div className="pt-6 border-t border-white/5 space-y-4">
-                <h4 className="text-lg font-bold text-white">🕰️ Horaires d'ouverture</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-gray-400">
-                  <span>Lundi - Vendredi :</span>
-                  <span className="text-white text-right">{detailsSection.hoursWeek}</span>
-                  <span>Samedi :</span>
-                  <span className="text-white text-right">{detailsSection.hoursSat}</span>
-                  <span>Dimanche :</span>
-                  <span className="text-red-400 text-right">{detailsSection.hoursSun}</span>
+                <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>🕰️</span> Horaires d'ouverture
+                </h4>
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs sm:text-sm font-semibold">
+                  <div className="flex items-center gap-2 text-gray-300 font-bold">
+                    <span className="w-2 h-2 rounded-full bg-[#00d26a] animate-pulse"></span>
+                    <span>{detailsSection.hoursLabel || "Lundi - Dimanche (7j/7) :"}</span>
+                  </div>
+                  <span className="text-[#00d26a] font-black text-sm sm:text-base">
+                    {detailsSection.hoursWeek ? detailsSection.hoursWeek.replace('2030', '20:30') : "07:00 - 20:30"}
+                  </span>
                 </div>
               </div>
 

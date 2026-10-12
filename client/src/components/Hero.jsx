@@ -54,10 +54,37 @@ const Hero = ({ data, isAdmin, onEdit }) => {
             </p>
           </div>
           <div className="space-y-6 max-w-lg">
-            <h2 className="text-xl font-h2 font-bold flex items-center gap-3">
-              Quel type de débarras recherchez-vous ?
-              <div className="h-px flex-grow bg-gradient-to-r from-white/20 to-transparent"></div>
-            </h2>
+            <div className="space-y-3">
+              <div className="relative">
+                {/* Ambient glow behind heading */}
+                <div className="absolute -inset-x-2 -inset-y-1 bg-gradient-to-r from-[#00d26a]/15 via-[#5d3077]/15 to-transparent rounded-2xl blur-lg pointer-events-none"></div>
+
+                <div className="relative flex items-center gap-3">
+                  {/* Glowing quote icon */}
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d26a]/25 to-[#00d26a]/5 border border-[#00d26a]/40 flex items-center justify-center text-[#00d26a] shadow-[0_0_20px_rgba(0,210,106,0.35)] shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-2xl sm:text-3xl font-h2 font-black tracking-tight text-white flex items-center gap-1.5">
+                      <span>{data?.quoteTitle ? data.quoteTitle.replace(/devis.*/i, '') : "Recevez votre "}</span>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00d26a] via-[#34ee8a] to-[#00d26a] drop-shadow-[0_0_20px_rgba(0,210,106,0.5)]">
+                        {data?.quoteTitle && /devis/i.test(data.quoteTitle) ? data.quoteTitle.match(/devis.*/i)[0] : "devis gratuit"}
+                      </span>
+                    </h2>
+
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#00d26a]/15 text-[#00d26a] border border-[#00d26a]/30 shadow-[0_0_10px_rgba(0,210,106,0.2)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00d26a] animate-pulse"></span>
+                      100% Gratuit
+                    </span>
+                  </div>
+
+                  <div className="h-[2px] flex-grow bg-gradient-to-r from-[#00d26a] via-[#00d26a]/30 to-transparent rounded-full hidden sm:block"></div>
+                </div>
+              </div>
+            </div>
 
             {/* Particulier Button */}
             <div className="relative group">

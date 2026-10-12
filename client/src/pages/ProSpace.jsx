@@ -221,8 +221,8 @@ const ProSpace = () => {
       customer: `${formData.companyName} (${formData.contactName})`,
       email: formData.email,
       tel: formData.phone,
-      service: `Espace Pro - Débarras ${formData.spaceType} (${formData.area} m²)`,
-      volume: `${formData.area} m²`,
+      service: `Espace Pro - Débarras ${formData.spaceType} (${formData.area} m³)`,
+      volume: `${formData.area} m³`,
       cleaningExtra: false,
       donationSorting: true,
       date: new Date().toLocaleDateString('fr-FR'),
@@ -402,8 +402,8 @@ const ProSpace = () => {
                   <p className="text-lg font-black">{formData.spaceType}</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs text-gray-400">Superficie</p>
-                  <p className="text-lg font-black">{formData.area} m²</p>
+                  <p className="text-xs text-gray-400">Superficie / Volume</p>
+                  <p className="text-lg font-black">{formData.area} m³</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                   <p className="text-xs text-gray-400">Équipe estimée</p>
@@ -474,14 +474,14 @@ const ProSpace = () => {
                     }}
                     className="px-4 py-2 bg-[#00d26a]/15 hover:bg-[#00d26a] border border-[#00d26a]/40 hover:border-[#00d26a] text-[#00d26a] hover:text-white rounded-xl text-xs font-black transition-all shadow-md active:scale-95 flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer"
                   >
-                    <span>⚙️</span> Modifier Tarifs au m²
+                    <span>⚙️</span> Modifier Tarifs au m³
                   </button>
                 )}
               </div>
 
               {ratesSuccessMsg && (
                 <div className="p-3 bg-[#00d26a]/20 border border-[#00d26a]/50 rounded-xl text-[#00d26a] text-xs font-bold flex items-center gap-2 animate-fadeIn">
-                  <span>✓</span> Grille tarifaire au m² mise à jour avec succès et appliquée immédiatement !
+                  <span>✓</span> Grille tarifaire au m³ mise à jour avec succès et appliquée immédiatement !
                 </div>
               )}
 
@@ -491,7 +491,7 @@ const ProSpace = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <label className="text-sm font-bold text-gray-300">Quel type d'espace souhaitez-vous débarrasser ?</label>
-                    <span className="text-[11px] text-gray-400 font-medium">Tarifs configurables au m²</span>
+                    <span className="text-[11px] text-gray-400 font-medium">Tarifs configurables au m³</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
@@ -516,7 +516,7 @@ const ProSpace = () => {
                             ? 'bg-[#00d26a] text-[#1e0a2d]'
                             : 'bg-white/10 text-gray-400'
                         }`}>
-                          {rate} € / m²
+                          {rate} € / m³
                         </span>
                       </button>
                     ))}
@@ -541,7 +541,7 @@ const ProSpace = () => {
                           className="w-28 text-right pr-9 pl-3 py-1.5 bg-[#00d26a]/15 border border-[#00d26a]/40 focus:border-[#00d26a] focus:ring-2 focus:ring-[#00d26a]/30 text-[#00d26a] rounded-xl font-black text-sm md:text-base outline-none transition-all"
                           placeholder="ex: 150"
                         />
-                        <span className="absolute right-3 text-[#00d26a] font-bold text-xs pointer-events-none">m²</span>
+                        <span className="absolute right-3 text-[#00d26a] font-bold text-xs pointer-events-none">m³</span>
                       </div>
                     </div>
                   </div>
@@ -556,9 +556,9 @@ const ProSpace = () => {
                     className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00d26a]"
                   />
                   <div className="flex justify-between text-xs text-gray-400 font-medium">
-                    <span>1 m²</span>
-                    <span>2 500 m²</span>
-                    <span>5 000 m²</span>
+                    <span>1 m³</span>
+                    <span>2 500 m³</span>
+                    <span>5 000 m³</span>
                   </div>
 
                   {/* Quick preset buttons */}
@@ -575,7 +575,7 @@ const ProSpace = () => {
                             : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                       >
-                        {val === 1 ? '1 m²' : `${val.toLocaleString()} m²`}
+                        {val === 1 ? '1 m³' : `${val.toLocaleString()} m³`}
                       </button>
                     ))}
                   </div>
@@ -769,7 +769,7 @@ const ProSpace = () => {
                   </p>
                   <p className="text-[10px] text-gray-500 mt-1">Valorisation de matières recyclables déduite si applicable.</p>
                   <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-semibold text-gray-300">
-                    <span>⚡</span> Tarif base : <span className="font-black text-[#00d26a]">{estimate.baseRate} € / m²</span> ({formData.spaceType})
+                    <span>⚡</span> Tarif base : <span className="font-black text-[#00d26a]">{estimate.baseRate} € / m³</span> ({formData.spaceType})
                   </div>
                 </div>
 
@@ -821,10 +821,10 @@ const ProSpace = () => {
             <div className="flex justify-between items-start border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-xl font-black flex items-center gap-2">
-                  <span className="text-[#00d26a]">⚙️</span> Configuration des Tarifs au m²
+                  <span className="text-[#00d26a]">⚙️</span> Configuration des Tarifs au m³
                 </h3>
                 <p className="text-xs text-gray-400 mt-1">
-                  Définissez le prix de base par mètre carré pour chaque type d'espace.
+                  Définissez le prix de base par mètre cube pour chaque type d'espace.
                 </p>
               </div>
               <button
@@ -853,7 +853,7 @@ const ProSpace = () => {
                       onChange={(e) => setTempRates(prev => ({ ...prev, usine: Math.max(1, parseInt(e.target.value) || 1) }))}
                       className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
                     />
-                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
                   </div>
                 </div>
 
@@ -871,7 +871,7 @@ const ProSpace = () => {
                       onChange={(e) => setTempRates(prev => ({ ...prev, entrepot: Math.max(1, parseInt(e.target.value) || 1) }))}
                       className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
                     />
-                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
                   </div>
                 </div>
 
@@ -889,7 +889,7 @@ const ProSpace = () => {
                       onChange={(e) => setTempRates(prev => ({ ...prev, grandDomaine: Math.max(1, parseInt(e.target.value) || 1) }))}
                       className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
                     />
-                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
                   </div>
                 </div>
 
@@ -907,7 +907,7 @@ const ProSpace = () => {
                       onChange={(e) => setTempRates(prev => ({ ...prev, autre: Math.max(1, parseInt(e.target.value) || 1) }))}
                       className="w-full bg-white/5 border border-white/10 focus:border-[#00d26a] rounded-xl p-3 pr-14 text-white font-black text-base outline-none transition-all"
                     />
-                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m²</span>
+                    <span className="absolute right-3 text-xs font-bold text-gray-400 pointer-events-none">€ / m³</span>
                   </div>
                 </div>
 
