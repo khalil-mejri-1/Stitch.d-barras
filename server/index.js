@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Middleware
@@ -197,7 +197,7 @@ app.post("/api/google-login", async (req, res) => {
     }
 
     const payload = await response.json();
-    
+
     // Verify client id (aud)
     const CLIENT_ID = "1009149258614-7mssvk5u2tm0o562qj26mi99j3g0nb47.apps.googleusercontent.com";
     if (payload.aud !== CLIENT_ID) {
