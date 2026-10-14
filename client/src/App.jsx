@@ -23,6 +23,7 @@ import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import ProSpace from './pages/ProSpace';
+import Diogene from './pages/Diogene';
 
 import SEOHead from './components/SEOHead';
 
@@ -123,6 +124,14 @@ const Home = ({ isAdmin, homepageData, onEditClick }) => {
                 className="h-16 md:h-20 w-auto object-contain mx-auto transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]" 
               />
             </Link>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-4 text-xs font-semibold text-gray-400">
+            <Link to="/services" className="hover:text-[#00d26a] transition-colors">Nos Services</Link>
+            <Link to="/prices" className="hover:text-[#00d26a] transition-colors">Tarifs & Devis</Link>
+            <Link to="/pro-space" className="hover:text-[#00d26a] transition-colors">Espace Pro</Link>
+            <Link to="/debarras-syndrome-diogene" className="text-[#00d26a] hover:underline font-bold">Syndrome de Diogène</Link>
+            <Link to="/about" className="hover:text-[#00d26a] transition-colors">À Propos</Link>
+            <Link to="/contact" className="hover:text-[#00d26a] transition-colors">Contact</Link>
           </div>
           <p>© 2026 Stitch Débarras - Tous droits réservés. Solution d'économie circulaire et recyclage.</p>
         </div>
@@ -265,6 +274,9 @@ function App() {
             </AdminRoute>
           } />
           <Route path="/pro-space" element={<ProSpace />} />
+          <Route path="/debarras-syndrome-diogene" element={<Diogene />} />
+          <Route path="/syndrome-de-diogene" element={<Diogene />} />
+          <Route path="/diogene" element={<Diogene />} />
         </Routes>
       </main>
 
