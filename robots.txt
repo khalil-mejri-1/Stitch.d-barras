@@ -1,0 +1,11 @@
+# Robots.txt for Stitch Débarras
+User-agent: *
+Allow: /
+
+# Disallow private & authenticated routes
+Disallow: /admin
+Disallow: /profile
+Disallow: /auth
+
+# Sitemap link
+Sitemap: https://stitch-debarras.fr/sitemap.xml

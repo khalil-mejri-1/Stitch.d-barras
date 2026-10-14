@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import PageEditModal from '../components/PageEditModal';
 import { API_BASE_URL } from '../config';
 
@@ -207,9 +208,15 @@ const Blog = () => {
                     <h3 className="text-xl font-bold font-h2 leading-snug group-hover:text-[#00d26a] transition-colors">{art.title}</h3>
                     <p className="text-gray-400 text-sm leading-relaxed">{art.desc}</p>
                   </div>
-                  <button className="text-sm font-black text-[#00d26a] flex items-center gap-1 hover:underline pt-4 mt-auto">
-                    Lire la suite <span>→</span>
-                  </button>
+                  {art.title.includes('Diogène') ? (
+                    <Link to="/debarras-syndrome-diogene" className="text-sm font-black text-[#00d26a] flex items-center gap-1 hover:underline pt-4 mt-auto">
+                      Lire le dossier complet <span>→</span>
+                    </Link>
+                  ) : (
+                    <button className="text-sm font-black text-[#00d26a] flex items-center gap-1 hover:underline pt-4 mt-auto">
+                      Lire la suite <span>→</span>
+                    </button>
+                  )}
                 </div>
               </article>
             ))}

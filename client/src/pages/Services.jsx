@@ -228,12 +228,21 @@ const Services = () => {
                     >
                       Réserver ce service
                     </Link>
-                    <Link 
-                      to="/quote-request"
-                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold border border-white/10 transition-all"
-                    >
-                      Demander un devis
-                    </Link>
+                    {service.id === 'nettoyage' ? (
+                      <Link 
+                        to="/debarras-syndrome-diogene"
+                        className="px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 rounded-xl font-bold transition-all flex items-center gap-2"
+                      >
+                        <span>🛡️</span> Guide Débarras Diogène
+                      </Link>
+                    ) : (
+                      <Link 
+                        to="/quote-request"
+                        className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold border border-white/10 transition-all"
+                      >
+                        Demander un devis
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
