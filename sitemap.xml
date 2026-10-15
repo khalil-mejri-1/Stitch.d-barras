@@ -1,84 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Page d'accueil -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
   <url>
-    <loc>https://stitch-debarras.com/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+       <loc>https://stitch-debarras.com/</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>1.0000</priority>
   </url>
-
-  <!-- Services Débarras -->
   <url>
-    <loc>https://stitch-debarras.com/services</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+       <loc>https://stitch-debarras.com/services</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Débarras Syndrome de Diogène -->
   <url>
-    <loc>https://stitch-debarras.com/debarras-syndrome-diogene</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+       <loc>https://stitch-debarras.com/prices</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Tarifs & Devis -->
   <url>
-    <loc>https://stitch-debarras.com/prices</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+       <loc>https://stitch-debarras.com/booking</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Espace Professionnel B2B -->
   <url>
-    <loc>https://stitch-debarras.com/pro-space</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+       <loc>https://stitch-debarras.com/quote-request</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Demande de Devis en Ligne -->
   <url>
-    <loc>https://stitch-debarras.com/quote-request</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+       <loc>https://stitch-debarras.com/about</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Réservation -->
   <url>
-    <loc>https://stitch-debarras.com/booking</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+       <loc>https://stitch-debarras.com/blog</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Le Blog & Conseils -->
   <url>
-    <loc>https://stitch-debarras.com/blog</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+       <loc>https://stitch-debarras.com/contact</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- À Propos de Stitch -->
   <url>
-    <loc>https://stitch-debarras.com/about</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+       <loc>https://stitch-debarras.com/pro-space</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.8000</priority>
   </url>
-
-  <!-- Contact -->
   <url>
-    <loc>https://stitch-debarras.com/contact</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+       <loc>https://stitch-debarras.com/debarras-syndrome-diogene</loc>
+       <lastmod>2026-10-15T11:22:57+00:00</lastmod>
+       <priority>0.5120</priority>
   </url>
-
 </urlset>
