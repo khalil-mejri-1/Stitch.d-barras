@@ -17,7 +17,7 @@ const Contact = () => {
     detailsSection: {
       address: "3 rue de la pépinière 93240 Stains",
       phone: "0630246109",
-      email: "contact@stitch-debarras.fr",
+      email: "contact@stitch-debarras.com",
       hoursLabel: "Lundi - Dimanche (7j/7) :",
       hoursWeek: "07:00 - 20:30"
     }

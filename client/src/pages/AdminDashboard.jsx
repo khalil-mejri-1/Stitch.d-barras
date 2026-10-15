@@ -448,7 +448,7 @@ const AdminDashboard = () => {
             <p>12 Avenue de l'Éco-Citoyen</p>
             <p>75001 Paris, France</p>
             <p>Siret : 123 456 789 00012</p>
-            <p>Email : contact@stitch-debarras.fr</p>
+            <p>Email : contact@stitch-debarras.com</p>
           </div>
           <div class="details-box">
             <h3>Destinataire</h3>
@@ -700,7 +700,7 @@ const AdminDashboard = () => {
             <p>12 Avenue de l'Éco-Citoyen</p>
             <p>75001 Paris, France</p>
             <p>Siret : 123 456 789 00012</p>
-            <p>Email : contact@stitch-debarras.fr</p>
+            <p>Email : contact@stitch-debarras.com</p>
           </div>
           <div class="details-box">
             <h3>Facturé à</h3>

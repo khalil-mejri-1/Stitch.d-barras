@@ -7,8 +7,8 @@ const SEOHead = ({
   title = "Stitch Débarras - Service de Débarras & Recyclage Écoresponsable",
   description = "Stitch Débarras est votre partenaire n°1 pour le débarras de maisons, appartements, caves et locaux professionnels en France. Devis gratuit et intervention rapide.",
   keywords = "débarras maison, débarras gratuit, vide maison, débarras cave, recyclage mobilier, eco-responsable, débarras professionnel, brocante",
-  canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://stitch-debarras.fr',
-  ogImage = "https://stitch-debarras.fr/og-image.jpg",
+  canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://stitch-debarras.com',
+  ogImage = "https://stitch-debarras.com/og-image.jpg",
   ogType = "website",
   jsonLd = null
 }) => {
