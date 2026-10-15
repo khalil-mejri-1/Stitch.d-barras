@@ -8,4 +8,4 @@ Disallow: /profile
 Disallow: /auth
 
 # Sitemap link
-Sitemap: https://stitch-debarras.fr/sitemap.xml
+Sitemap: https://stitch-debarras.com/sitemap.xml
