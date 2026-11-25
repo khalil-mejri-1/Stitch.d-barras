@@ -1,4 +1,30 @@
-server/.env
-client/node_modules
-server/node_modules
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+build/
+**/build/
+
+# Environment files
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Sensitive / Logs / Firebase / Archives
 pass.txt
+**/pass.txt
+.firebase/
+**/.firebase/
+firebase-debug.log*
+**/firebase-debug.log*
+*.log
+*.zip
+.DS_Store
+Thumbs.db

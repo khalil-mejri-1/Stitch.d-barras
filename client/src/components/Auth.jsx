@@ -39,9 +39,10 @@ const Auth = () => {
   useEffect(() => {
     /* global google */
     const initGoogleGSI = () => {
-      if (window.google) {
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (window.google && googleClientId) {
         google.accounts.id.initialize({
-          client_id: "***REDACTED***",
+          client_id: googleClientId,
           callback: handleGoogleLoginResponse
         });
         google.accounts.id.renderButton(

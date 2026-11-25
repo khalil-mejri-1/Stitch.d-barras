@@ -199,8 +199,8 @@ app.post("/api/google-login", async (req, res) => {
     const payload = await response.json();
 
     // Verify client id (aud)
-    const CLIENT_ID = "***REDACTED***";
-    if (payload.aud !== CLIENT_ID) {
+    const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+    if (!CLIENT_ID || payload.aud !== CLIENT_ID) {
       return res.status(400).json({ error: "ID Client Google non correspondant." });
     }
 
